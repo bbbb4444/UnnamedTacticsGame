@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class NPCController : CharacterController
 {
+    
+    public static event UnityAction OnTurnStartNPC;
     public AIHandler _aiHandler;
 
     protected override void Start()
@@ -17,17 +20,15 @@ public class NPCController : CharacterController
         base.EndTurn();
     }
 
-    public override void BeginTurn()
+    public override void BeginPhase()
     {
-        print("NPC BEGIN TURN GOOOOOOO");
-        _aiHandler.BeginTurn();
+            print("NPC BEGIN TURN GOOOOOOO");
+            _aiHandler.BeginPhase();
     }
 
     public override void RemoveAction(int num)
     {
         base.RemoveAction(num);
-        print("actions not 0");
-        _aiHandler.BeginTurn();
     }
     
     public override void FindNearestTarget()

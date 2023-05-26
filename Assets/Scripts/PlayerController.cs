@@ -1,18 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : CharacterController
 {
-    // Start is called before the first frame update
-    void Start()
+    public override void BeginPhase()
     {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
+    
 }

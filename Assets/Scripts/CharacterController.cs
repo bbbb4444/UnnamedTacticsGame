@@ -6,15 +6,15 @@ using UnityEngine.Events;
 public class CharacterController : MonoBehaviour
 {
     [SerializeField] private CharStats stats;
-    private bool _turn;
+    public CharacterCombat combat;
     public Renderer Renderer;
     public float minY = 0;
     private CharacterMovement _movement;
-    
-
-    
+    public static event UnityAction OnTurnStart;
+    public static event UnityAction OnPhaseStart;
     public static event UnityAction OnLeftOverActions;
-    public static event UnityAction OnEndMove;
+    public static event UnityAction OnEndMovePhase;
+    public static event UnityAction OnEndOtherActionPhase;
     public static event UnityAction OnTurnEnd;
     public int Actions { get; set; }
     public bool CanMove { get; set; }
@@ -26,13 +26,16 @@ public class CharacterController : MonoBehaviour
     }
     
      protected virtual void Start()
-    {
-        Actions = 2;
-        CanMove = true;
-        CanOtherAction = true;
+     {
+         Actions = 2;
+         CanMove = true;
+         
         stats = Instantiate(stats);
+        OnEndMovePhase += BeginPhase;
+        OnEndOtherActionPhase += BeginPhase;
         
         TurnManager.AddUnit(this);
+        combat = GetComponent<CharacterCombat>();
         _movement = GetComponent<CharacterMovement>();
         Renderer = GetComponent<Renderer>();
         minY = Renderer.bounds.min.y;
@@ -44,30 +47,32 @@ public class CharacterController : MonoBehaviour
     }
     
     // Turns
-    public virtual void BeginTurn()
+    public void StartTurn()
     {
+        BeginPhase();
+    }
+
+    public virtual void BeginPhase()
+    {
+        if (Actions > 0)
+        {
+            OnPhaseStart?.Invoke();
+        }
+        else EndTurn();
         
     }
     public virtual void EndTurn()
     {
-        _movement.ResetSelectableTilesList();
         Actions = 2;
         CanMove = true;
-        _turn = false;
+        CanOtherAction = true;
         TurnManager.EndTurn();
     }
     public virtual void RemoveAction(int num)
     {
+ 
         Actions -= num;
-        if (Actions <= 0)
-        {
-            print("Ending Turn_________________________");
-            EndTurn();
-        }
-        else if (CompareTag("Player"))
-        {
-            OnLeftOverActions?.Invoke();
-        }
+  
     }
 
     
@@ -78,10 +83,17 @@ public class CharacterController : MonoBehaviour
         GetMovement().MoveTo(tile);
 
     }
-    public virtual void EndMove()
+    public virtual void EndMovePhase()
     {
-        OnEndMove?.Invoke();
         CanMove = false;
+        RemoveAction(1);
+        OnEndMovePhase?.Invoke();
+    }
+
+    public virtual void EndOtherActionPhase()
+    {
+        CanOtherAction = false;
+        OnEndOtherActionPhase?.Invoke();
         RemoveAction(1);
     }
     public CharacterMovement GetMovement()
@@ -89,15 +101,11 @@ public class CharacterController : MonoBehaviour
         return _movement;
     }
     
-    
-    // Battle
-    public void TakeDamage(float dmg)
-    {
-        stats.SetStat(Stat.Health, dmg);
-    }
     public void BasicAttack(CharacterController attacker, CharacterController defender)
     {
-        BattleManager.BasicAttack(attacker, defender);
+        combat.BasicAttack(attacker, defender);
     }
+    
+
 
 }

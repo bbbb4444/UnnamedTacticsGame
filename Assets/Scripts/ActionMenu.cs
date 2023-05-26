@@ -35,16 +35,18 @@ public class ActionMenu : MonoBehaviour
 
     private void OnEnable()
     {
-        TurnManager.OnTurnStart += EnableActionButtons;
-        TurnManager.OnTurnStart += ShowActionMenu;
+        CharacterController.OnPhaseStart += EnableActionButtons;
+        CharacterController.OnPhaseStart += ShowActionMenu;
+
         CharacterController.OnLeftOverActions += ShowActionMenu;
 
-        CharacterController.OnEndMove += DisableMoveButton;
+        CharacterController.OnEndMovePhase += DisableMoveButton;
+        CharacterController.OnEndOtherActionPhase += DisableOtherActionButtons;
     }
 
     private void OnDisable()
     {
-        TurnManager.OnTurnStart -= ShowActionMenu;
+        CharacterController.OnTurnStart -= ShowActionMenu;
     }
 
     
@@ -76,7 +78,7 @@ public class ActionMenu : MonoBehaviour
         print("Disabled MOVE BUTTON");
         moveButton.interactable = false;
     }
-    public void DisableActionButtons()
+    public void DisableOtherActionButtons()
     {
         moveButton.interactable = false;
         attackButton.interactable = false;
@@ -94,6 +96,7 @@ public class ActionMenu : MonoBehaviour
 
     public void OnAttackButtonClicked()
     {
+        currentAction = ActionType.Attack;
         OnAttackSelected?.Invoke();
         HideActionMenu();
     }

@@ -8,8 +8,7 @@ using UnityEngine.Events;
 
 public class TurnManager : MonoBehaviour
 {
-    public static event UnityAction OnTurnStart;
-    public static event UnityAction OnTurnStartNPC;
+
     public static event UnityAction OnTurnEnd;
 
     // private static Dictionary<string, List<CharacterController>> _teamUnits = new();
@@ -20,7 +19,6 @@ public class TurnManager : MonoBehaviour
     private void Start()
     {
         //UIManager.Instance.OnActionSelected += HandleActionSelected;
-        ActionMenu.OnMoveSelected += OnMoveSelected;
         InitTeamTurnQueue();
     }
 
@@ -49,11 +47,6 @@ public class TurnManager : MonoBehaviour
     }
     
     
-    void OnMoveSelected()
-    {
-        _activePlayer.GetMovement().ShowSelectableTiles();
-    }
-    
     
 /*
     public static void EndTurn()
@@ -76,12 +69,7 @@ public class TurnManager : MonoBehaviour
     public static void StartTurn()
     {
         print("Turn Manager Start " + _activePlayer.tag);
-        if (_activePlayer.CompareTag("Player")) OnTurnStart?.Invoke();
-        else if (_activePlayer.CompareTag("NPC"))
-        {
-            _activePlayer.BeginTurn();
-            OnTurnStartNPC?.Invoke();
-        }
+        _activePlayer.StartTurn();
     }
     public static void EndTurn()
     {

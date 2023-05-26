@@ -12,13 +12,13 @@ public class NPCMovement : CharacterMovement
         base.Start();
     }
     
-    public override void ShowSelectableTiles()
+    public override void FindSelectableTiles()
     {
         print("npc show select");
+        base.FindSelectableTiles(); 
         controller.FindNearestTarget(); 
         CalculatePath(); 
         actualTargetTile.target = true; 
-        base.ShowSelectableTiles(); 
     }
 
     public void MoveToTarget(GameObject t)
@@ -26,7 +26,7 @@ public class NPCMovement : CharacterMovement
         target = t;
         CalculatePath(); 
         actualTargetTile.target = true; 
-        base.ShowSelectableTiles(); 
+        FindSelectableTiles(); 
         controller.MoveToTile(actualTargetTile);
     }
     

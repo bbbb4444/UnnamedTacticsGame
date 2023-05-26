@@ -19,8 +19,8 @@ public class CursorMovement : MonoBehaviour
     {
         ActionMenu.OnMoveSelected += Enable;
         TurnManager.OnTurnEnd += Disable;
-        TurnManager.OnTurnStart += MoveToActivePlayer;
-        TurnManager.OnTurnStartNPC += MoveToActivePlayer;
+        CharacterController.OnPhaseStart += MoveToActivePlayer;
+        // CharacterController.OnTurnStartNPC += MoveToActivePlayer;
         _transform = transform;
         _cursorGraphic = transform.GetChild(0);
         _cameraPivot = GameObject.FindGameObjectWithTag("CameraPivot");
@@ -38,6 +38,10 @@ public class CursorMovement : MonoBehaviour
                 Disable();
                 _activePlayer.MoveToTile(currentTile);
             }
+        }
+        else if (ActionMenu.currentAction == ActionMenu.ActionType.Attack)
+        {
+            
         }
     }
     
