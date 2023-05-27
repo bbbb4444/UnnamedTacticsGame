@@ -6,30 +6,28 @@ using UnityEngine.Events;
 public class NPCController : CharacterController
 {
     
-    public static event UnityAction OnTurnStartNPC;
+    public static event UnityAction OnPhaseStartNPC;
     public AIHandler _aiHandler;
 
     protected override void Start()
     {
-        base.Start();
         _aiHandler = GetComponent<AIHandler>();
+        base.Start();
     }
-
-    public override void EndTurn()
-    {
-        base.EndTurn();
-    }
+    
 
     public override void BeginPhase()
     {
+        if (Actions > 0)
+        {
+            OnPhaseStartNPC?.Invoke();
             print("NPC BEGIN TURN GOOOOOOO");
-            _aiHandler.BeginPhase();
+            Ready = false;
+            StartCoroutine(_aiHandler.BeginPhase());
+        }
+        else EndTurn();
     }
-
-    public override void RemoveAction(int num)
-    {
-        base.RemoveAction(num);
-    }
+    
     
     public override void FindNearestTarget()
     {

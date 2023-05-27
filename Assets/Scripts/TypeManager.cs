@@ -116,7 +116,5 @@ public class TypeManager : MonoBehaviour
 
     private void Start()
     {
-        print("_______TYPE: " +CalculateType(Element.Ground, Augment.Dark));
-        print(GetEffectiveness(Element.Ground, Element.Fire));
     }
 }

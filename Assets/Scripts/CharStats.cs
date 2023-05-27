@@ -45,7 +45,7 @@ public class CharStats : ScriptableObject
         return 0;
     }
 
-    public void SetStat(Stat stat, float value)
+    public void AddStat(Stat stat, float value)
     {
         foreach (StatInfo s in statInfo)
         {

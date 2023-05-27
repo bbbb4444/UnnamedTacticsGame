@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.InputSystem;
@@ -7,6 +8,7 @@ using UnityEngine.Serialization;
 
 public class CameraMovement : MonoBehaviour
 {
+    public Camera uiCamera;
     public Camera mainCamera;
     private GameObject _cursor;
     [SerializeField] private int amountOfTiles;
@@ -26,6 +28,7 @@ public class CameraMovement : MonoBehaviour
     private bool _zooming;
     void Start()
     {
+        uiCamera = GameObject.FindWithTag("UICamera").GetComponent<Camera>();
         _cursor = GameObject.FindWithTag("Cursor");
     }
     
@@ -50,12 +53,12 @@ public class CameraMovement : MonoBehaviour
     {
         int zd = (int) zoomDirection.Get<float>();
         ZoomCamera(zd);
-        print(zoomDirection.Get<float>());
-        print(zd);
     }
     void ZoomCamera(int zoomDirection)
     {
-        mainCamera.orthographicSize = Mathf.Clamp(mainCamera.orthographicSize + zoomPower*zoomDirection, 2, 7);
+        float newSize = Mathf.Clamp(mainCamera.orthographicSize + zoomPower*zoomDirection, 2, 7);
+        mainCamera.orthographicSize = newSize;
+        uiCamera.orthographicSize = newSize;
     }
 
     public void OnMove(InputValue value)

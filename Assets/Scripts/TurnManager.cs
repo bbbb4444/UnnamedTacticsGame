@@ -69,7 +69,7 @@ public class TurnManager : MonoBehaviour
     public static void StartTurn()
     {
         print("Turn Manager Start " + _activePlayer.tag);
-        _activePlayer.StartTurn();
+        _activePlayer.Ready = true;
     }
     public static void EndTurn()
     {

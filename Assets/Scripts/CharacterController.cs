@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,12 +11,16 @@ public class CharacterController : MonoBehaviour
     public Renderer Renderer;
     public float minY = 0;
     private CharacterMovement _movement;
+    public CharacterGUI gui;
+    
     public static event UnityAction OnTurnStart;
     public static event UnityAction OnPhaseStart;
     public static event UnityAction OnLeftOverActions;
     public static event UnityAction OnEndMovePhase;
     public static event UnityAction OnEndOtherActionPhase;
     public static event UnityAction OnTurnEnd;
+    
+    public bool Ready { get; set; }
     public int Actions { get; set; }
     public bool CanMove { get; set; }
     public bool CanOtherAction { get; set; }
@@ -24,21 +29,32 @@ public class CharacterController : MonoBehaviour
     {
         return stats;
     }
-    
-     protected virtual void Start()
+
+    private void Awake()
+    {
+        stats = Instantiate(stats);
+        gui = GetComponentInChildren<CharacterGUI>();
+        gui.charStats = stats;
+    }
+
+    protected virtual void Start()
      {
+         Ready = false;
          Actions = 2;
          CanMove = true;
+         CanOtherAction = true;
          
-        stats = Instantiate(stats);
-        OnEndMovePhase += BeginPhase;
-        OnEndOtherActionPhase += BeginPhase;
-        
+         
         TurnManager.AddUnit(this);
         combat = GetComponent<CharacterCombat>();
         _movement = GetComponent<CharacterMovement>();
         Renderer = GetComponent<Renderer>();
         minY = Renderer.bounds.min.y;
+    }
+
+    private void Update()
+    {
+        if (Ready) BeginPhase();
     }
 
     public virtual void FindNearestTarget()
@@ -54,6 +70,7 @@ public class CharacterController : MonoBehaviour
 
     public virtual void BeginPhase()
     {
+        Ready = false;
         if (Actions > 0)
         {
             OnPhaseStart?.Invoke();
@@ -61,18 +78,16 @@ public class CharacterController : MonoBehaviour
         else EndTurn();
         
     }
-    public virtual void EndTurn()
+    public void EndTurn()
     {
         Actions = 2;
         CanMove = true;
         CanOtherAction = true;
         TurnManager.EndTurn();
     }
-    public virtual void RemoveAction(int num)
+    public void RemoveAction(int num)
     {
- 
         Actions -= num;
-  
     }
 
     
@@ -83,18 +98,22 @@ public class CharacterController : MonoBehaviour
         GetMovement().MoveTo(tile);
 
     }
-    public virtual void EndMovePhase()
+    public void EndMovePhase()
     {
+        Ready = true;
         CanMove = false;
         RemoveAction(1);
         OnEndMovePhase?.Invoke();
+        BeginPhase();
     }
 
-    public virtual void EndOtherActionPhase()
+    public void EndOtherActionPhase()
     {
+        Ready = true;
         CanOtherAction = false;
-        OnEndOtherActionPhase?.Invoke();
         RemoveAction(1);
+        OnEndOtherActionPhase?.Invoke();
+        BeginPhase();
     }
     public CharacterMovement GetMovement()
     {
@@ -104,6 +123,7 @@ public class CharacterController : MonoBehaviour
     public void BasicAttack(CharacterController attacker, CharacterController defender)
     {
         combat.BasicAttack(attacker, defender);
+        EndOtherActionPhase();
     }
     
 

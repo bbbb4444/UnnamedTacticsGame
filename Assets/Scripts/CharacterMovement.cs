@@ -36,7 +36,6 @@ public class CharacterMovement : MonoBehaviour
     
     void OnEnable()
     {
-        ActionMenu.OnMoveSelected += FindSelectableTiles;
     }
     protected virtual void Start()
     {
@@ -75,7 +74,6 @@ public class CharacterMovement : MonoBehaviour
     {
         RaycastHit hit;
         Tile tile = null;
-            print(gameObject.tag + ": " + target.transform.position);
         if (Physics.Raycast(target.transform.position, Vector3.down, out hit, 3))
         {
             tile = TileCache.GetTile(hit.collider);
@@ -94,8 +92,6 @@ public class CharacterMovement : MonoBehaviour
 
     public virtual void FindSelectableTiles()
     {
-        if (controller != TurnManager.GetActivePlayer()) return;
-        
         GetCurrentTile();
         ComputeAdjacencyLists(jumpHeight, null);
 
@@ -411,6 +407,7 @@ public class CharacterMovement : MonoBehaviour
     // Start Moving
     protected virtual void OnStopMoving()
     {
+        print("Finished moving");
         Moving = false;
         ResetSelectableTilesList();
         controller.EndMovePhase();

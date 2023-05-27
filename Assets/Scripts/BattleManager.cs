@@ -11,5 +11,7 @@ public class BattleManager : MonoBehaviour
 
         float percentDiff = Mathf.Abs(attackerStr - defenderDef) / (attackerStr + defenderDef) / 2;
         print("Percent diff: " + percentDiff);
+        
+        defender.combat.TakeDamage(5 + 10*percentDiff);
     }
 }

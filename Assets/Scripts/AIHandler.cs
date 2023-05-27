@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,26 +16,31 @@ public class AIHandler : MonoBehaviour
         _combat = GetComponent<CharacterCombat>();
     }
 
- public void BeginPhase()
+    private void Update()
+    {
+ 
+    }
+
+    public IEnumerator BeginPhase()
     {
         _controller.FindNearestTarget();
         Transform targetTransform = _controller.Target.transform;
         if (_controller.CanOtherAction && Vector3.Distance(transform.position, targetTransform.position) < _attackRange)
         {
             print("ATTACK");
-            _combat.BasicAttack(_controller, _controller.Target.GetComponent<CharacterController>());
-            // Attack();
-            _controller.CanOtherAction = false;
-            // Remove later
-            _controller.EndOtherActionPhase();
+            _controller.BasicAttack(_controller, _controller.Target.GetComponent<CharacterController>());
         }
         else if (_controller.CanMove)
         {
             print(_movement.tag);
             _movement.MoveToTarget(_controller.Target);
             print(_controller.Target);
-            print("controller target" + _controller.Target);
+            print("Waiting to be finished moving...");
+            yield return new WaitUntil(() => _controller.Ready);
         }
-        else _controller.RemoveAction(1);
+        else
+        {
+            _controller.EndTurn();
+        }
     }
 }

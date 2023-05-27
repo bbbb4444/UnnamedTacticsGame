@@ -20,6 +20,8 @@ public class CursorMovement : MonoBehaviour
         ActionMenu.OnMoveSelected += Enable;
         TurnManager.OnTurnEnd += Disable;
         CharacterController.OnPhaseStart += MoveToActivePlayer;
+        NPCController.OnPhaseStartNPC += MoveToActivePlayer;
+        
         // CharacterController.OnTurnStartNPC += MoveToActivePlayer;
         _transform = transform;
         _cursorGraphic = transform.GetChild(0);

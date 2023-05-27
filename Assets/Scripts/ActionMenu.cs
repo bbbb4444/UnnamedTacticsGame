@@ -53,7 +53,6 @@ public class ActionMenu : MonoBehaviour
     
     public void ShowActionMenu()
     {
-        print("Opening Action Menu");
         UIManager.OpenScreen(ScreenType.ActionMenu);
         if (moveButton.interactable) moveButton.Select();
         else attackButton.Select();
@@ -91,6 +90,10 @@ public class ActionMenu : MonoBehaviour
     {
         currentAction = ActionType.Move;
         OnMoveSelected?.Invoke();
+        if (TurnManager.GetActivePlayer().CompareTag("Player"))
+        {
+            TurnManager.GetActivePlayer().GetMovement().FindSelectableTiles();
+        }
         UIManager.CloseScreen(ScreenType.ActionMenu);
     }
 
