@@ -20,7 +20,7 @@ public class CursorMovement : MonoBehaviour
         ActionMenu.OnMoveSelected += Enable;
         TurnManager.OnTurnEnd += Disable;
         CharacterController.OnPhaseStart += MoveToActivePlayer;
-        NPCController.OnPhaseStartNPC += MoveToActivePlayer;
+        //NPCController.OnPhaseStartNPC += MoveToActivePlayer;
         
         // CharacterController.OnTurnStartNPC += MoveToActivePlayer;
         _transform = transform;
@@ -32,21 +32,36 @@ public class CursorMovement : MonoBehaviour
         if (_disable) return;
         
         print("CLICKED");
-        if (ActionMenu.currentAction == ActionMenu.ActionType.Move)
+        
+        switch (ActionMenu.currentAction)
         {
-            Tile currentTile = GetTile();
-            if (currentTile != null)
-            {
-                Disable();
-                _activePlayer.MoveToTile(currentTile);
-            }
-        }
-        else if (ActionMenu.currentAction == ActionMenu.ActionType.Attack)
-        {
-            
+            case ActionMenu.ActionType.None:
+                break;
+            case ActionMenu.ActionType.Move:
+                TileSelectMove();
+                break;
+            case ActionMenu.ActionType.Attack:
+                break;
+            case ActionMenu.ActionType.Tech:
+                break;
+            case ActionMenu.ActionType.Item:
+                break;
+            case ActionMenu.ActionType.Defend:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
+    private void TileSelectMove()
+    {
+        Tile currentTile = GetTile();
+        if (currentTile == null) return;
+        
+        Disable();
+        _activePlayer.MoveToTile(currentTile);
+    }
     
+    // Moving the cursor
     public void OnMove(InputValue value)
     {
         if (_isFollowing || _disable) return;

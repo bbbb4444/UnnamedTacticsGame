@@ -6,12 +6,12 @@ public class UIScreen : MonoBehaviour
  
     public bool IsOpen { get { return canvas.enabled; }}
  
-    private void Awake()
+    protected virtual void Awake()
     {
         canvas = GetComponent<Canvas>();
     }
  
-    public void Open()
+    public virtual void Open()
     {
         if (!canvas.enabled)
         {
@@ -19,7 +19,7 @@ public class UIScreen : MonoBehaviour
         }
     }
  
-    public void Close()
+    public virtual void Close()
     {
         if (canvas.enabled)
         {

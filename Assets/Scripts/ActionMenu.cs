@@ -1,21 +1,22 @@
 using System;
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class ActionMenu : MonoBehaviour
+public class ActionMenu : UIScreen
 {
     public GameObject actionMenuPanel;
     public Button moveButton;
     public Button attackButton;
-    public Button skillButton;
+    public Button techButton;
     public Button itemButton;
     public Button defendButton;
     
     public static event UnityAction OnMoveSelected;
     public static event UnityAction OnAttackSelected;
-    public static event UnityAction OnSkillSelected;
+    public static event UnityAction OnTechSelected;
     public static event UnityAction OnItemSelected;
     public static event UnityAction OnDefendSelected;
     public static ActionType currentAction = ActionType.None;
@@ -24,39 +25,54 @@ public class ActionMenu : MonoBehaviour
         None,       // Default or invalid action
         Move,       // Movement action
         Attack,     // Attack action
-        Magic,      // Magic action
+        Tech,      // Technique action
         Item,       // Item action
         Defend      // Defend action
     }
-    private void Awake()
+
+    private void Update()
     {
+        
+    }
+
+    
+    protected void Awake()
+    {
+        base.Awake();
         actionMenuPanel = GameObject.FindGameObjectWithTag("ActionMenuPanel");
     }
 
+    public override void Open()
+    {
+        base.Open();
+        
+        EnableActionButtons();
+        if (moveButton.interactable) moveButton.Select();
+        else attackButton.Select();
+    }
+
+    public override void Close()
+    {
+        if (!IsOpen) return;
+        
+        DisableOtherActionButtons();
+        base.Close();
+    }
     private void OnEnable()
     {
-        CharacterController.OnPhaseStart += EnableActionButtons;
-        CharacterController.OnPhaseStart += ShowActionMenu;
-
-        CharacterController.OnLeftOverActions += ShowActionMenu;
-
+        ActionMenuTech.GoBack += EnableActionButtons;
+        
         CharacterController.OnEndMovePhase += DisableMoveButton;
         CharacterController.OnEndOtherActionPhase += DisableOtherActionButtons;
+        
+        AIHandler.PrepareMove += AISelectMove;
+        AIHandler.PrepareAttack += AISelectAttack;
     }
 
     private void OnDisable()
     {
-        CharacterController.OnTurnStart -= ShowActionMenu;
     }
-
     
-    
-    public void ShowActionMenu()
-    {
-        UIManager.OpenScreen(ScreenType.ActionMenu);
-        if (moveButton.interactable) moveButton.Select();
-        else attackButton.Select();
-    }
 
     public void HideActionMenu()
     {
@@ -67,21 +83,20 @@ public class ActionMenu : MonoBehaviour
     {
         moveButton.interactable = true;
         attackButton.interactable = true;
-        skillButton.interactable = true;
+        techButton.interactable = true;
         itemButton.interactable = true;
         defendButton.interactable = true;
     }
 
     public void DisableMoveButton()
     {
-        print("Disabled MOVE BUTTON");
         moveButton.interactable = false;
     }
     public void DisableOtherActionButtons()
     {
         moveButton.interactable = false;
         attackButton.interactable = false;
-        skillButton.interactable = false;
+        techButton.interactable = false;
         itemButton.interactable = false;
         defendButton.interactable = false;
     }
@@ -99,15 +114,15 @@ public class ActionMenu : MonoBehaviour
 
     public void OnAttackButtonClicked()
     {
-        currentAction = ActionType.Attack;
-        OnAttackSelected?.Invoke();
-        HideActionMenu();
+        //currentAction = ActionType.Attack;
+        //OnAttackSelected?.Invoke();
+        //HideActionMenu();
     }
 
-    public void OnSkillButtonClicked()
+    public void OnTechButtonClicked()
     {
-        OnSkillSelected?.Invoke();
-        HideActionMenu();
+        currentAction = ActionType.Tech;
+        UIManager.OpenScreen(ScreenType.ActionMenuTech);
     }
 
     public void OnItemButtonClicked()
@@ -120,5 +135,25 @@ public class ActionMenu : MonoBehaviour
     {
         OnDefendSelected?.Invoke();
         HideActionMenu();
+    }
+    
+    
+    // AI
+    void AISelectMove()
+    {
+        moveButton.Select();
+        StartCoroutine(WaitSeconds(moveButton.onClick.Invoke, 1));
+    }
+
+    void AISelectAttack()
+    {
+        attackButton.Select();
+        StartCoroutine(WaitSeconds(moveButton.onClick.Invoke, 1));
+    }
+    
+    IEnumerator WaitSeconds(UnityAction method, int sec)
+    {
+        yield return new WaitForSeconds(sec);
+        method.Invoke();
     }
 }
