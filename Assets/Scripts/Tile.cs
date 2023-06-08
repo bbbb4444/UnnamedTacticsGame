@@ -1,12 +1,24 @@
 using System.Collections.Generic;
+using System.Numerics;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Vector3 = UnityEngine.Vector3;
 
 public class Tile : MonoBehaviour
 {
-    private Color _color;
+    public enum State
+    {
+        Move,
+        Tech
+    }
     
+    private Color _color;
+
+    private Transform _tform;
     private Renderer _renderer;
+    public Vector3 pos;
+    public Vector3 posLOS;
     public float height;
     public float sizeY;
     public bool passable = true;
@@ -14,10 +26,10 @@ public class Tile : MonoBehaviour
     public bool target = false;
     public bool selectable = false;
 
-    private List<Tile> _neighborsForward;
-    private List<Tile> _neighborsBack;
-    private List<Tile> _neighborsLeft;
-    private List<Tile> _neighborsRight;
+    public List<Tile> _neighborsForward;
+    public List<Tile> _neighborsBack;
+    public List<Tile> _neighborsLeft;
+    public List<Tile> _neighborsRight;
     
     
     public List<Tile> adjacencyList = new List<Tile>();
@@ -36,11 +48,18 @@ public class Tile : MonoBehaviour
     void Start()
     {
         CalcHeight();
+        _tform = GetComponent<Transform>();
         _renderer = GetComponent<Renderer>();
         sizeY = GetComponent<Collider>().bounds.size.y;
+        
         UpdateNeighbors();
+        ComputeAdjacency();
+        
         _color = new Color(0.4f + height*0.07f, 0.78f, 0.4f + height*0.07f);
         _renderer.materials[1].color = _color;
+
+        pos = _tform.position + new Vector3(0, 0, 0);
+        posLOS = pos + new Vector3(0, sizeY+0.5f, 0);
     }
     
     public void SetSelectable()
@@ -67,7 +86,6 @@ public class Tile : MonoBehaviour
     public void Reset()
     {
         _renderer.materials[1].color = _color;
-        adjacencyList.Clear();
         
         current = false; 
         target = false; 
@@ -88,6 +106,7 @@ public class Tile : MonoBehaviour
         _neighborsRight = Neighbors(Vector3.right);
     }
     
+    // Calculates the lists of neighbors. Skip if the neighbor is blocked from above.
     private List<Tile> Neighbors(Vector3 direction)
     {
         Vector3 halfExtents = new Vector3(0.25f, 30f, 0.25f);
@@ -97,23 +116,30 @@ public class Tile : MonoBehaviour
         List<Tile> neighbors = new List<Tile>();
         for (int i = 0; i < numColliders; i++)
         {
-            if (colliders[i].CompareTag("Tile"))
-            {
-                neighbors.Add(colliders[i].GetComponent<Tile>());
-            }
+            Vector3 origin = colliders[i].transform.position + new Vector3(0, 0.1f, 0);
+            int layerMask = 1 << LayerMask.NameToLayer("Tile");
+            
+            // If this isn't a tile, skip this.
+            if (!colliders[i].CompareTag("Tile")) continue;
+            
+            // If another tile is blocking this tile from above, skip this tile.
+            // TODO: Move this to tile processing in TileSelector if raw neighbors are ever needed.
+            if (Physics.Raycast(origin, Vector3.up, out RaycastHit _, 1, layerMask)) continue;
+            
+            neighbors.Add(colliders[i].GetComponent<Tile>());
         }
         return neighbors;
     }
     
-    public void FindNeighbors(float jumpHeight, Tile targetTile)
+    public void ComputeAdjacency()
     {
-        CheckTile(Vector3.forward, jumpHeight, targetTile);
-        CheckTile(Vector3.back, jumpHeight, targetTile);
-        CheckTile(Vector3.left, jumpHeight, targetTile);
-        CheckTile(Vector3.right, jumpHeight, targetTile);
+        CheckTile(Vector3.forward);
+        CheckTile(Vector3.back);
+        CheckTile(Vector3.left);
+        CheckTile(Vector3.right);
     }
     
-     private void CheckTile(Vector3 direction, float jumpHeight, Tile targetTile)
+    private void CheckTile(Vector3 direction)
      { 
          List<Tile> neighbors = new List<Tile>();
          if (direction == Vector3.forward)
@@ -125,36 +151,39 @@ public class Tile : MonoBehaviour
          else if (direction == Vector3.right)
              neighbors = _neighborsRight;
          
-        foreach (Tile tile in neighbors)
-        {
-            float adjHeight = tile.height;
-            
-            // Skip if AT is not passable
-            if (!tile.passable) continue;
+         foreach (Tile tile in neighbors)
+         {
+             adjacencyList.Add(tile);
+         }
+     }
 
-            // Skip if the height difference is larger than the jump height
-            if (Mathf.Abs(height - adjHeight) >= jumpHeight) continue;
-            
-            // Skip if something is directly on top of AT and if the AT isn't the target tile
-            // TODO: Combine with height > adjHeight condition
-            if (Physics.Raycast(tile.transform.position+new Vector3(0,0.1f,0), Vector3.up, out RaycastHit _, 1) && tile != targetTile) continue;
-            // Skip when there is something blocking the parent tile from above (AT is higher than parent tile).
-            if (height < adjHeight &&
-                Physics.Raycast(transform.position + new Vector3(0, 0.6f, 0), Vector3.up, out RaycastHit _, adjHeight)) continue;
-            // Skip when there is something blocking the AT from above (AT is lower than parent tile).
-            if (height > adjHeight &&
-                Physics.Raycast(tile.transform.position + new Vector3(0, 0.5f, 0), Vector3.up, out RaycastHit _,
-                    height - adjHeight)) continue;
-            
-            /* AT will only be added to the adjacency list if the following conditions are met:
-                1. Is labeled passable
-                2. Height difference between parent and adjacent tile is low enough for jumping
-                3. There is nothing directly on top of it
-                4. There is nothing blocking a character from jumping upwards to the tile (When the adjacent tile is higher than the parent tile)
-                5. There is nothing blocking a character from jumping downwards to the tile (When the adjacent tile is lower than the parent tile) 
-                */
-            adjacencyList.Add(tile);
-            
-        }
-    }
+
+     public CharacterController GetCharacter()
+     {
+         Ray ray = new(_tform.position + new Vector3(0, 0.1f, 0), Vector3.up);
+         RaycastHit hit;
+         if (Physics.Raycast(ray, out hit, 1))
+         {
+             if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("NPC"))
+             {
+                 return hit.collider.GetComponent<CharacterController>();
+             }
+         }
+         print("No character on tile");
+         return null;
+     }
+
+     public bool HasCharacter()
+     {
+         Ray ray = new(_tform.position + new Vector3(0, 0.1f, 0), Vector3.up);
+         RaycastHit hit;
+         if (Physics.Raycast(ray, out hit, 1))
+         {
+             if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("NPC"))
+             {
+                 return true;
+             }
+         }
+         return false;
+     }
 }

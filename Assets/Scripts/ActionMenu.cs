@@ -36,7 +36,7 @@ public class ActionMenu : UIScreen
     }
 
     
-    protected void Awake()
+    protected override void Awake()
     {
         base.Awake();
         actionMenuPanel = GameObject.FindGameObjectWithTag("ActionMenuPanel");
@@ -46,6 +46,7 @@ public class ActionMenu : UIScreen
     {
         base.Open();
         
+        TurnManager.GetActivePlayer().tileSelector.ResetSelectableTiles();
         EnableActionButtons();
         if (moveButton.interactable) moveButton.Select();
         else attackButton.Select();
@@ -56,6 +57,7 @@ public class ActionMenu : UIScreen
         if (!IsOpen) return;
         
         DisableOtherActionButtons();
+        
         base.Close();
     }
     private void OnEnable()
@@ -66,7 +68,7 @@ public class ActionMenu : UIScreen
         CharacterController.OnEndOtherActionPhase += DisableOtherActionButtons;
         
         AIHandler.PrepareMove += AISelectMove;
-        AIHandler.PrepareAttack += AISelectAttack;
+        AIHandler.PrepareTech += AISelectTech;
     }
 
     private void OnDisable()
@@ -145,10 +147,10 @@ public class ActionMenu : UIScreen
         StartCoroutine(WaitSeconds(moveButton.onClick.Invoke, 1));
     }
 
-    void AISelectAttack()
+    void AISelectTech()
     {
-        attackButton.Select();
-        StartCoroutine(WaitSeconds(moveButton.onClick.Invoke, 1));
+        techButton.Select();
+        StartCoroutine(WaitSeconds(techButton.onClick.Invoke, 1));
     }
     
     IEnumerator WaitSeconds(UnityAction method, int sec)

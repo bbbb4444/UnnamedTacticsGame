@@ -46,7 +46,7 @@ public class CameraMovement : MonoBehaviour
 
     public void OnFreeCamera()
     {
-        _cursor.GetComponent<CursorMovement>().Disable(_freeCamera);
+        _cursor.GetComponent<CursorMovement>().Enable(_freeCamera);
         _freeCamera = !_freeCamera;
     }
     public void OnZoom(InputValue zoomDirection)

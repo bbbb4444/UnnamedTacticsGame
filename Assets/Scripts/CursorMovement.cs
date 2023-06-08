@@ -1,5 +1,7 @@
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -13,26 +15,35 @@ public class CursorMovement : MonoBehaviour
     private bool _disable = true;
     private bool _isActive = true;
     
-    private CharacterController _activePlayer;
+    private bool TechConfirm { get; set; }
+    
+    private CharacterController _activeCharacter;
+    private CharacterController _targetCharacter;
+    
     private bool _isFollowing;
+    
+    public bool EnableClick { get; set; }
+    public bool EnableMovement { get; set; }
     void Start()
     {
+        TechConfirm = false;
+        
         ActionMenu.OnMoveSelected += Enable;
+        CharacterController.OnTechTarget += Enable;
+        
         TurnManager.OnTurnEnd += Disable;
         CharacterController.OnPhaseStart += MoveToActivePlayer;
-        //NPCController.OnPhaseStartNPC += MoveToActivePlayer;
+
+        ActionMenuTech.OnTechClicked += BeginAI;
         
-        // CharacterController.OnTurnStartNPC += MoveToActivePlayer;
         _transform = transform;
         _cursorGraphic = transform.GetChild(0);
         _cameraPivot = GameObject.FindGameObjectWithTag("CameraPivot");
     }
     public void OnClick()
     {
-        if (_disable) return;
-        
-        print("CLICKED");
-        
+        if (!EnableClick) return;
+        print(ActionMenu.currentAction);
         switch (ActionMenu.currentAction)
         {
             case ActionMenu.ActionType.None:
@@ -43,6 +54,8 @@ public class CursorMovement : MonoBehaviour
             case ActionMenu.ActionType.Attack:
                 break;
             case ActionMenu.ActionType.Tech:
+                if (!TechConfirm) TileSelectTech();
+                else ConfirmTech();
                 break;
             case ActionMenu.ActionType.Item:
                 break;
@@ -52,19 +65,50 @@ public class CursorMovement : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
     }
+
+    public void OnCancel()
+    {
+        if (!EnableClick) return;
+        TechConfirm = false;
+        print("Last Screen: " + UIManager.LastScreen);
+        Enable(false);
+        MoveToActivePlayer();
+        UIManager.OpenScreen(UIManager.LastScreen);
+    }
+    
     private void TileSelectMove()
     {
         Tile currentTile = GetTile();
         if (currentTile == null) return;
         
         Disable();
-        _activePlayer.MoveToTile(currentTile);
+        _activeCharacter.MoveToTile(currentTile);
     }
+
+    private void TileSelectTech()
+    {
+        TechConfirm = true;
+        
+        EnableMovement = false;
+        Tile currentTile = GetTile();
+        if (currentTile == null || !currentTile.selectable) return;
+        TurnManager.GetActivePlayer().GetTechHandler().ShowArea(currentTile);
+    }
+    private void ConfirmTech()
+    {
+        TechConfirm = false;
+        
+        Tile currentTile = GetTile();
+        List<CharacterController> targets = TurnManager.GetActivePlayer().tileSelector.GetTargetedCharacters();
+        Disable();
+        TurnManager.GetActivePlayer().TechAttack(targets);
+    }
+    
     
     // Moving the cursor
     public void OnMove(InputValue value)
     {
-        if (_isFollowing || _disable) return;
+        if (_isFollowing || !EnableMovement) return;
         
         int x = (int) value.Get<Vector2>().x;
         int z = (int) value.Get<Vector2>().y;
@@ -74,8 +118,8 @@ public class CursorMovement : MonoBehaviour
         movement = Quaternion.AngleAxis(_rotationDeg, Vector3.up) * movement;
         
         Vector3 direction = movement.normalized;
-        
-        int y = CalcHigherY(direction);
+
+        float y = CalcHigherY(direction);
         movement.y += y;
         _transform.position += movement;
         
@@ -83,10 +127,10 @@ public class CursorMovement : MonoBehaviour
         _transform.position += new Vector3(0,y,0);
     }
 
-    int CalcHigherY(Vector3 direction)
+    float CalcHigherY(Vector3 direction)
     {
         // Calc positive y (to raise the cursor)
-        int y = 0;
+        float y = 0;
         Vector3 origin = _transform.position + direction;
         Ray ray = new Ray(origin, Vector3.up);
         if (Physics.Raycast(ray))
@@ -169,25 +213,51 @@ public class CursorMovement : MonoBehaviour
     
     private void MoveToActivePlayer()
     {
-        _activePlayer = TurnManager.GetActivePlayer();
-        Vector3 targetPos = _activePlayer.transform.position;
-        float minY = _activePlayer.Renderer.bounds.min.y;
+        TechConfirm = false;
+        
+        _activeCharacter = TurnManager.GetActivePlayer();
+        Vector3 targetPos = _activeCharacter.transform.position;
+        float minY = _activeCharacter.ccollider.bounds.min.y;
         Vector3 bottomPos = new Vector3(targetPos.x, minY - 0.5f, targetPos.z);
         transform.position = bottomPos;
     }
-    public void Disable(bool d)
+    public void Enable(bool d)
     {
-        _disable = d;
+        EnableClick = d;
+        EnableMovement = d;
     }
 
     void Disable()
     {
-        _disable = true;
+        EnableClick = false;
+        EnableMovement = false;
     }
 
     void Enable()
     {
-        _disable = false;
+        EnableClick = true;
+        EnableMovement = true;
     }
     
+    
+    // AI
+    private void BeginAI()
+    {
+        _activeCharacter = TurnManager.GetActivePlayer();
+        StartCoroutine(AIActions());
+    }
+
+    private IEnumerator AIActions()
+    {
+        yield return new WaitForSeconds(0.2f);
+        GameObject targetCharacter = _activeCharacter.Target;
+        print(targetCharacter);
+        float minY = targetCharacter.GetComponent<CharacterController>().ccollider.bounds.min.y;
+        print(minY);
+        MoveTo(targetCharacter, minY);
+        yield return new WaitForSeconds(0.5f);
+        OnClick();
+        yield return new WaitForSeconds(0.5f);
+        OnClick();
+    }
 }
