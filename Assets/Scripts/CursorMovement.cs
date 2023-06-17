@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -28,6 +27,13 @@ public class CursorMovement : MonoBehaviour
     {
         TechConfirm = false;
         
+        _transform = transform;
+        _cursorGraphic = transform.GetChild(0);
+        _cameraPivot = GameObject.FindGameObjectWithTag("CameraPivot");
+    }
+
+    private void OnEnable()
+    {
         ActionMenu.OnMoveSelected += Enable;
         CharacterController.OnTechTarget += Enable;
         
@@ -35,11 +41,19 @@ public class CursorMovement : MonoBehaviour
         CharacterController.OnPhaseStart += MoveToActivePlayer;
 
         ActionMenuTech.OnTechClicked += BeginAI;
-        
-        _transform = transform;
-        _cursorGraphic = transform.GetChild(0);
-        _cameraPivot = GameObject.FindGameObjectWithTag("CameraPivot");
     }
+
+    private void OnDisable()
+    {
+        ActionMenu.OnMoveSelected -= Enable;
+        CharacterController.OnTechTarget -= Enable;
+        
+        TurnManager.OnTurnEnd -= Disable;
+        CharacterController.OnPhaseStart -= MoveToActivePlayer;
+        
+        ActionMenuTech.OnTechClicked -= BeginAI;
+    }
+
     public void OnClick()
     {
         if (!EnableClick) return;
@@ -70,10 +84,10 @@ public class CursorMovement : MonoBehaviour
     {
         if (!EnableClick) return;
         TechConfirm = false;
-        print("Last Screen: " + UIManager.LastScreen);
+        print("Last Screen: " + UIManager.Instance.LastScreen);
         Enable(false);
         MoveToActivePlayer();
-        UIManager.OpenScreen(UIManager.LastScreen);
+        UIManager.Instance.OpenScreen(UIManager.Instance.LastScreen);
     }
     
     private void TileSelectMove()
@@ -109,6 +123,7 @@ public class CursorMovement : MonoBehaviour
     public void OnMove(InputValue value)
     {
         if (_isFollowing || !EnableMovement) return;
+        
         
         int x = (int) value.Get<Vector2>().x;
         int z = (int) value.Get<Vector2>().y;
@@ -165,21 +180,21 @@ public class CursorMovement : MonoBehaviour
     {
         Vector3 targetPos = targetObj.transform.position;
         Vector3 bottomPos = new Vector3(targetPos.x, minY-0.5f, targetPos.z);
-        transform.position = bottomPos;
+        _transform.position = bottomPos;
     }
     public void Follow(GameObject targetObj, float minY)
     {
         Vector3 targetPos = targetObj.transform.position;
         Vector3 bottomPos = new Vector3(targetPos.x, minY-0.5f, targetPos.z);
-        transform.position = bottomPos;
-        transform.SetParent(targetObj.transform);
+        _transform.position = bottomPos;
+        _transform.SetParent(targetObj.transform);
         _isFollowing = true;
     }
     public void Follow(GameObject targetObj)
     {
         if (targetObj == null)
         {
-            transform.SetParent(null);
+            _transform.SetParent(null);
             _isFollowing = false;
         }
         /*
@@ -213,13 +228,15 @@ public class CursorMovement : MonoBehaviour
     
     private void MoveToActivePlayer()
     {
+
         TechConfirm = false;
         
         _activeCharacter = TurnManager.GetActivePlayer();
         Vector3 targetPos = _activeCharacter.transform.position;
         float minY = _activeCharacter.ccollider.bounds.min.y;
         Vector3 bottomPos = new Vector3(targetPos.x, minY - 0.5f, targetPos.z);
-        transform.position = bottomPos;
+        
+        _transform.position = bottomPos;
     }
     public void Enable(bool d)
     {
@@ -235,10 +252,15 @@ public class CursorMovement : MonoBehaviour
 
     void Enable()
     {
+        StartCoroutine(EnableDelay());
+    }
+
+    private IEnumerator EnableDelay()
+    {
+        yield return new WaitForSeconds(0.1f);
         EnableClick = true;
         EnableMovement = true;
     }
-    
     
     // AI
     private void BeginAI()

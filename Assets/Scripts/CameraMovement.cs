@@ -1,8 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Assertions.Comparers;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
@@ -24,7 +21,7 @@ public class CameraMovement : MonoBehaviour
     
     private Vector3 _movement;
     private bool _freeCamera = false;
-    private bool _rotating;
+    public bool rotating;
     private bool _zooming;
     void Start()
     {
@@ -80,9 +77,9 @@ public class CameraMovement : MonoBehaviour
     }
     IEnumerator RotateCamera(int rotateDirection)
     {
-        if (_rotating) yield break;
+        if (rotating) yield break;
         
-        _rotating = true;
+        rotating = true;
         int angle = _angleToRotate * rotateDirection;
         currentAngle += angle;
         currentAngle %= 360;
@@ -98,7 +95,7 @@ public class CameraMovement : MonoBehaviour
             yield return null;
         }
         transform.rotation = targetRotation;
-        _rotating = false;
+        rotating = false;
     }
     
 
