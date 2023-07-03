@@ -1,9 +1,20 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class BattleManager : MonoBehaviour
 {
+    public enum Effective
+    {
+        Ultra = 2,
+        Super = 1,
+        Neutral = 0,
+        Weakly = -1,
+        SuperWeakly = -2,
+        Immune = -3
+    }
+    
     public static void TechAttack(Technique tech, CharacterController attacker, CharacterController defender)
     {
         float accRoll = Random.value*100f;
@@ -13,9 +24,18 @@ public class BattleManager : MonoBehaviour
             return;
         }
 
+        float damage = CalculateDamage(tech, attacker, defender);
+
+        
+        
+        defender.combat.TakeDamage(damage);
+    }
+
+    public static float CalculateDamage(Technique tech, CharacterController attacker, CharacterController defender)
+    {
         float techPower = tech.power/100f;
-        float attackerStr = attacker.GetStats().GetStat(Stat.Strength);
-        float defenderDef = defender.GetStats().GetStat(Stat.Defense);
+        float attackerStr = attacker.Stats.GetStat(Stat.Strength);
+        float defenderDef = defender.Stats.GetStat(Stat.Defense);
         float damage;
 
         if (attackerStr > defenderDef)
@@ -27,41 +47,31 @@ public class BattleManager : MonoBehaviour
             damage = (attackerStr * attackerStr / defenderDef) * techPower;
         }
 
+        if (tech.type == attacker.CharType) damage *= 1.1f;
+        
         damage *= GetTypeEffectiveness(tech, defender);
         
-        defender.combat.TakeDamage(damage);
+        return damage;
     }
 
+    
     private static float GetTypeEffectiveness(Technique tech, CharacterController defender)
     {
-        Type defenderType = defender.GetStats().type.type;
-        float effectiveness = tech.type.effectiveness[(int) defenderType];
-        
-        switch (effectiveness)
-        {
-            case 2:
-                effectiveness = 2.25f;
-                break;
-            case 1:
-                effectiveness = 1.5f;
-                break;
-            case 0:
-                effectiveness = 1f;
-                break;
-            case -1:
-                effectiveness = 0.75f;
-                break;
-            case -2:
-                effectiveness = 0.5625f;
-                break;
-            case -3:
-                effectiveness = 0;
-                break;
-            default:
-                print("type effectiveness not supported");
-                throw new Exception();
-        }
-
-        return effectiveness;
+        Type defenderType = defender.CharType.type;
+        Effectiveness effectiveness = tech.type.effectiveness[(int) defenderType];
+        return effectiveness.multiplier;
+    }
+    
+    public static float GetTypeEffectiveness(Technique tech, CharType defendType)
+    {
+        Type defenderType = defendType.type;
+        Effectiveness effectiveness = tech.type.effectiveness[(int) defenderType];
+        return effectiveness.multiplier;
+    }
+    public static Color GetEffectivenessColor(Technique tech, CharType defendType)
+    {
+        Type defenderType = defendType.type;
+        Effectiveness effectiveness = tech.type.effectiveness[(int) defenderType];
+        return effectiveness.color;
     }
 }

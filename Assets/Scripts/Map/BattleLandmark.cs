@@ -5,13 +5,37 @@ using UnityEngine;
 public class BattleLandmark : Landmark
 {
     [SerializeField] public List<GameObject> enemyTeam;
- 
+    private EnemyPool.Pool pool;
+    private int EnemyCount { get; set; }
+    protected override void Awake()
+    {
+        base.Awake();
+
+        pool = (EnemyPool.Pool) Random.Range(0, 2);
+        EnemyCount = Random.Range(2, 3);
+        enemyTeam = EnemyPool.Instance.GetRandomEnemies(pool, EnemyCount);
+    }
+
+    public override void Complete()
+    {
+        base.Complete();
+        StartCoroutine(ReselectAfterDelay());
+        
+        UIManager.Instance.OpenScreen(ScreenType.ChooseYourRewardCharacter);
+    }
+
+    private IEnumerator ReselectAfterDelay()
+    {
+        yield return new WaitForSeconds(0f);
+        
+        LandmarkManager.Instance.SelectLandmark(this);
+    }
+    
     public override void EnterLandmark()
     {
         GameManager.Instance.enemyTeam = enemyTeam;
-        print(GameManager.Instance.enemyTeam.Count);
         SceneSwitcher.SwitchToScene("SampleScene");
-        UIManager.Instance.OpenScreen(ScreenType.Ready);
+        
         StartCoroutine(OpenScreenAfterDelay());
         
         base.EnterLandmark();
@@ -20,5 +44,12 @@ public class BattleLandmark : Landmark
     private IEnumerator OpenScreenAfterDelay()
     {
         yield return new WaitForSeconds(0.1f);
+        UIManager.Instance.OpenScreen(ScreenType.Ready);
+    }
+
+    protected override void CreateAppearance()
+    {
+        Appearance = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        base.CreateAppearance();
     }
 }

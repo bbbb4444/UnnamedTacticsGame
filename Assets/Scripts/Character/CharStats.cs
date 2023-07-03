@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum Stat
@@ -16,8 +18,8 @@ public class CharStats : ScriptableObject
 {
     private TextAsset _typeEffectiveText;
     private TextAsset _typeNamesText;
-    
-    [SerializeField]
+
+    public List<Technique> movePool = new();
     public List<StatInfo> baseStatInfo = new List<StatInfo>();
     private List<StatInfo> statInfo = new List<StatInfo>();
     
@@ -30,6 +32,17 @@ public class CharStats : ScriptableObject
     //[SerializeField] private Augment augment;
 
     
+    public float GetBaseStat(Stat stat)
+    {
+        foreach (StatInfo s in baseStatInfo)
+        {
+            if (s.statType == stat) return s.statValue;
+        }
+
+        Action<object> logError = Debug.LogError;
+        logError("No stat value found for " + stat + " in " + this.name);
+        return 0;
+    }  
     
     public float GetStat(Stat stat)
     {
@@ -55,6 +68,10 @@ public class CharStats : ScriptableObject
     }
     private void Awake()
     {
-        statInfo = baseStatInfo;
+        foreach (StatInfo stat in baseStatInfo)
+        {
+            
+            statInfo.Add(stat.Clone());
+        }
     }
 }

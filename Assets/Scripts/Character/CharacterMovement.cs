@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class CharacterMovement : MonoBehaviour
 {
-    public bool turn = false;
     protected TileSelector TileSelector;
     public CharacterController controller;
-    protected Transform Transform;
     protected CursorMovement TileCursor;
     //private List<Tile> _selectableTiles = new List<Tile>();
     //private Tile[] _tiles;
@@ -15,10 +13,9 @@ public class CharacterMovement : MonoBehaviour
     private Stack<Tile> _path = new Stack<Tile>();
     //private Tile _currentTile;
     
-    public int move = 5;
-    public float jumpHeight = 3f;
+    public int move;
+    public float jumpHeight;
     public float moveSpeed = 2f;
-    public float jumpVelocity = 4.5f;
     
     private Vector3 _velocity = new Vector3();
     private Vector3 _direction = new Vector3();
@@ -42,8 +39,10 @@ public class CharacterMovement : MonoBehaviour
         TileSelector = GetComponent<TileSelector>();
         controller = GetComponent<CharacterController>();
         TileCursor = GameObject.FindWithTag("Cursor").GetComponent<CursorMovement>();
-        TileSelector.UpdateTiles();
         _halfHeight = GetComponent<Collider>().bounds.extents.y;
+
+        move = 4 + (int) controller.Stats.GetStat(Stat.Speed)/5;
+        jumpHeight = 2;
     }
     private void FixedUpdate()
     {
@@ -86,7 +85,7 @@ public class CharacterMovement : MonoBehaviour
     
     public virtual void FindSelectableTiles()
     {
-        TileSelector.FindSelectableTiles(jumpHeight, move, null, Tile.State.Move);
+        TileSelector.FindSelectableMoveTiles(jumpHeight, move);
         /*
         GetCurrentTile();
         ComputeAdjacencyLists(jumpHeight, null);
@@ -135,7 +134,7 @@ public class CharacterMovement : MonoBehaviour
         tile.SetTarget();
 
         Tile next = tile;
-        while (next != null && _path.Count < 50)
+        while (next != null)
         {
             _path.Push(next);
             next = next.parent;
@@ -326,7 +325,7 @@ public class CharacterMovement : MonoBehaviour
         Stack<Tile> tempPath = new Stack<Tile>();
 
         Tile next = t.parent;
-        while (next != null && tempPath.Count < 60)
+        while (next != null)
         {
             tempPath.Push(next);
             next = next.parent;
@@ -349,7 +348,6 @@ public class CharacterMovement : MonoBehaviour
     {
         TileSelector.GetCurrentTile();
         
-        List<Tile> selectableTiles = controller.tileSelector.SelectableTiles;
         Tile currentTile = TileSelector.CurrentTile;
         Tile t = currentTile;
         
@@ -373,12 +371,11 @@ public class CharacterMovement : MonoBehaviour
                 return;
             }
 
-            foreach (Tile tile in t.adjacencyList)
+            foreach (Tile tile in t.GetMovementAdjacency(jumpHeight, controller.Target))
             {
-                if (!TileSelector.MoveCheck(t, tile, jumpHeight) && tile != target)
-                {
-                    continue;
-                }
+                //if (!TileSelector.SelectableTiles.Contains(tile)) continue;
+                //if (tile != target) continue;
+                
                 if (closedList.Contains(tile))
                 {
                     //do nothing

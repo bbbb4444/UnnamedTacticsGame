@@ -29,7 +29,7 @@ public class NPCMovement : CharacterMovement
         base.OnStopMoving();
         TileCursor.Follow(null);
     }
-    void CalculatePath()
+    public void CalculatePath()
     {
         Tile targetTile = TileSelector.GetTargetTile(target);
         FindPath(targetTile);

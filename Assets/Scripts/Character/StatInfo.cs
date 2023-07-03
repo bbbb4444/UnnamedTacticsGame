@@ -10,4 +10,13 @@ public class StatInfo
     public Stat statType;
     [SerializeField]
     public float statValue;
+
+    public StatInfo Clone()
+    {
+        return new StatInfo
+        {
+            statType = this.statType,
+            statValue = this.statValue
+        };
+    }
 }

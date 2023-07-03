@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,13 +9,25 @@ public class LandmarkInput : MonoBehaviour
         CanUse = true;
         Landmark.OnComplete += Enable;
         Landmark.OnEnter += Disable;
+        
+        EventCharacter.OnOpen += Disable;
+        EventCharacter.OnClose += Enable;
+    }
+
+    private void OnDisable()
+    {
+        Landmark.OnComplete -= Enable;
+        Landmark.OnEnter -= Disable;
+        
+        EventCharacter.OnOpen -= Disable;
+        EventCharacter.OnClose -= Enable;
     }
 
     private bool CanUse { get; set; }
     
     public void OnSubmit()
     {
-        if (!CanUse || !LandmarkManager.Instance.current.IsActive || LandmarkManager.Instance.current.IsCompleted) return;
+        if (!CanUse/* || !LandmarkManager.Instance.current.IsActive || LandmarkManager.Instance.current.IsCompleted*/) return;
         
         LandmarkManager.Instance.current.EnterLandmark();
     }
@@ -31,28 +44,37 @@ public class LandmarkInput : MonoBehaviour
         
         if (x == -1)
         {
-            if (current.previousLandmark == null) return;
-            selected = current.previousLandmark;
+            if (current.prevLandmarks.Count == 0) return;
+            selected = current.prevLandmarks[0];
         }
         else if (x == 1)
         {
             if (current.nextLandmarks.Count == 0) return;
-            selected = current.nextLandmarks[0];
+            selected = current.nextLandmarks.Count == 2 ? current.nextLandmarks[1] : current.nextLandmarks[0];
         }
         else if (y == 1)
         {
-            if (current.NeighborAbove == null) return;
-            selected = current.NeighborAbove;
+            if (current.NeighborAbove == null)
+            {
+                if (current.nextLandmarks.Count == 0) return;
+                selected = current.nextLandmarks[0];
+            }
+            else selected = current.NeighborAbove;
         }
         else if (y == -1)
         {
-            if (current.NeighborBelow == null) return;
-            selected = current.NeighborBelow;
+            if (current.NeighborBelow == null)
+            {
+                if (current.nextLandmarks.Count  < 2) return;
+                selected = current.nextLandmarks[1];
+            }
+            else selected = current.NeighborBelow;
         }
 
         LandmarkManager.Instance.SelectLandmark(selected);
     }
-
+    
+    
     private void Disable()
     {
         CanUse = false;

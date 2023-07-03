@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
 
@@ -9,7 +11,9 @@ public class Tile : MonoBehaviour
         Move,
         Tech
     }
-    
+
+    [SerializeField] public TextMeshProUGUI distanceFromActive;
+
     private Color _color;
 
     private Transform _tform;
@@ -41,6 +45,11 @@ public class Tile : MonoBehaviour
     public float f = 0;
     public float g = 0;
     public float h = 0;
+
+    public List<Tile> GetMovementAdjacency(float jumpHeight, GameObject targetChar = null)
+    {
+        return adjacencyList.FindAll(tile => MoveCheck(this, tile, jumpHeight, targetChar));
+    }
     
     void Start()
     {
@@ -82,6 +91,7 @@ public class Tile : MonoBehaviour
   
     public void Reset()
     {
+        if (distanceFromActive) distanceFromActive.text = "";
         _renderer.materials[1].color = _color;
         
         current = false; 
@@ -147,13 +157,45 @@ public class Tile : MonoBehaviour
              neighbors = _neighborsLeft;
          else if (direction == Vector3.right)
              neighbors = _neighborsRight;
-         
-         foreach (Tile tile in neighbors)
-         {
-             adjacencyList.Add(tile);
-         }
-     }
 
+
+         foreach (Tile tile in neighbors) adjacencyList.Add(tile);
+     }
+    public bool MoveCheck(Tile parentTile, Tile adjacent, float jumpHeight, GameObject targetChar = null)
+    {
+        if (adjacent.HasCharacter() && adjacent.GetCharacter().gameObject != targetChar)
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-Ch";
+            return false;
+        }
+        
+        if (!adjacent.passable)
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-P";
+            return false;
+        }
+
+        if (Mathf.Abs(parentTile.height - adjacent.height) >= jumpHeight)
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-JL";
+            return false;
+        }
+
+        if (parentTile.height < adjacent.height && Physics.Raycast(parentTile.transform.position + new Vector3(0, 0.6f, 0), Vector3.up,
+                out RaycastHit _, adjacent.height))
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-BA";
+            return false;
+        }
+
+        if (parentTile.height > adjacent.height && Physics.Raycast(adjacent.transform.position + new Vector3(0, 0.5f, 0),
+                Vector3.up, out RaycastHit _, parentTile.height - adjacent.height))
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-BB";
+            return false;
+        }
+        return true;
+    }
 
      public CharacterController GetCharacter()
      {

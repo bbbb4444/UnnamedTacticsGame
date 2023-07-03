@@ -10,6 +10,7 @@ public enum Element
 }
 public enum Augment
 {
+    None = 0,
     Light = 5,
     Dark = 10
 }

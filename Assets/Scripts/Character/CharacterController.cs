@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -6,14 +8,17 @@ using UnityEngine.Serialization;
 public class CharacterController : MonoBehaviour
 {
     [SerializeField] private CharStats stats;
+    [SerializeField] private CharType type;
+    
     private TechHandler _techHandler;
-    public TileSelector tileSelector;
-    public CharacterCombat combat;
-    public Transform tform;
-    [FormerlySerializedAs("Collider")] public Collider ccollider;
-    public float minY = 0;
+    [HideInInspector] public TileSelector tileSelector;
+    [HideInInspector] public CharColor charColor;
+    [HideInInspector] public CharacterCombat combat;
+    [HideInInspector] public Transform tform;
+    [HideInInspector] public Collider ccollider;
+    [HideInInspector] public float minY = 0;
     private CharacterMovement _movement;
-    public CharacterGUI gui;
+    [HideInInspector] public CharacterGUI gui;
     
     public static event UnityAction OnPhaseStart;
     public static event UnityAction OnEndMovePhase;
@@ -28,49 +33,96 @@ public class CharacterController : MonoBehaviour
             return losPos;
         }
     }
+    private Vector3 StartingPosition { get; set; }
+    public string Name { get; set; }
     public bool Ready { get; set; }
     public int Actions { get; set; }
     public bool CanMove { get; set; }
     public bool CanOtherAction { get; set; }
     public GameObject Target { get; set; }
-    public CharStats GetStats()
+
+    public CharStats Stats
     {
-        return stats;
-    }
-    public TechHandler GetTechHandler()
-    {
-        return _techHandler;
-    }
-    private void Awake()
-    {
-        stats = Instantiate(stats);
-        gui = GetComponentInChildren<CharacterGUI>();
-        gui.charStats = stats;
-        TurnManager.AddUnit(this);
+        get
+        {
+            return stats;
+        }
+        set
+        {
+            stats = value;
+        }
     }
 
-    protected virtual void Start()
-     {
-         Actions = 2;
-         CanMove = true;
-         CanOtherAction = true;
-         
-         
+    public CharType CharType
+    {
+        get => type;
+        set
+        {
+            type = value;
+            charColor.UpdateColor(value);
+        }
+    }
+
+    public TechHandler TechHandler { get; set; }
+
+    private void OnEnable()
+    {
+        TurnManager.OnBattleEnter += AddToTurnManager;
+    }
+    private void OnDisable()
+    {
+        TurnManager.OnBattleEnter -= AddToTurnManager;
+    }
+    protected virtual void Awake()
+    {
+        Name = RandomName.GetRandomName();
+        stats = Instantiate(stats);
         
-        combat = GetComponent<CharacterCombat>();
-        tileSelector = GetComponent<TileSelector>();
-        _techHandler = GetComponent<TechHandler>();
-        _movement = GetComponent<CharacterMovement>();
+        
+        gui = GetComponentInChildren<CharacterGUI>();
+        gui.charStats = stats;
+        
         ccollider = GetComponent<Collider>();
         tform = GetComponent<Transform>();
+        TryGetThenAddComponents();
+    }
+
+    private void TryGetThenAddComponents()
+    {
+        combat = GetComponent<CharacterCombat>() ? GetComponent<CharacterCombat>() : this.AddComponent<CharacterCombat>();
+        tileSelector = GetComponent<TileSelector>() ? GetComponent<TileSelector>() : this.AddComponent<TileSelector>();
+        charColor = GetComponent<CharColor>() ? GetComponent<CharColor>() : this.AddComponent<CharColor>();
+        if (!CharType) CharType = stats.type;
+        TechHandler = GetComponent<TechHandler>() ? GetComponent<TechHandler>() : this.AddComponent<TechHandler>();
+        _movement = GetComponent<CharacterMovement>() ? GetComponent<CharacterMovement>() : this.AddComponent<CharacterMovement>();
+    }
+    
+    protected virtual void Start()
+    {
+        
+        Actions = 2;
+        CanMove = true;
+        CanOtherAction = true;
+        
         minY = ccollider.bounds.min.y;
     }
 
+    public void BeginTurn()
+    {
+        StartingPosition = tform.position;
+        Ready = true;
+    }
+    
     private void Update()
     {
         if (Ready) BeginPhase();
     }
 
+    private void AddToTurnManager()
+    {
+        TurnManager.AddUnit(this);
+    }
+    
     public virtual void FindNearestTarget()
     {
         print("Empty");
@@ -92,6 +144,20 @@ public class CharacterController : MonoBehaviour
         else EndTurn();
         
     }
+
+   public void Reset()
+   {
+       Actions = 2;
+       CanMove = true;
+       CanOtherAction = true;
+   }
+   
+    public void ResetMovement()
+    {
+        Actions = 2;
+        CanMove = true;
+        tform.position = StartingPosition;
+    }
     public void EndTurn()
     {
         Actions = 2;
@@ -105,7 +171,7 @@ public class CharacterController : MonoBehaviour
         print(this.tag + " : " + Actions);
     }
 
-    
+
     // Move
     public void MoveToTile(Tile tile)
     {
@@ -124,7 +190,7 @@ public class CharacterController : MonoBehaviour
     {
         return _movement;
     }
-    
+
     // Attack
     public void BasicAttack(CharacterController attacker, CharacterController defender)
     {
@@ -141,7 +207,7 @@ public class CharacterController : MonoBehaviour
     {
         List<CharacterController> enemyTargets =
             new List<CharacterController>(targets).FindAll(obj => !obj.CompareTag(tag));
-        combat.TechAttack(_techHandler.SelectedTech, this, enemyTargets);
+        combat.TechAttack(TechHandler.SelectedTech, this, enemyTargets);
     }
 
     public void Die()
@@ -153,7 +219,7 @@ public class CharacterController : MonoBehaviour
 
         gameObject.SetActive(false);
     }
-    
+
     public void EndOtherActionPhase()
     {
         Ready = true;
@@ -161,8 +227,7 @@ public class CharacterController : MonoBehaviour
         RemoveAction(1);
         OnEndOtherActionPhase?.Invoke();
     }
- 
-    
+
 
 
 }

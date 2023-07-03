@@ -15,7 +15,7 @@ public class CharacterCombat : MonoBehaviour
         _tileSelector = GetComponent<TileSelector>();
         _character = GetComponent<CharacterController>();
         _techHandler = GetComponent<TechHandler>();
-        _stats = _character.GetStats();
+        _stats = _character.Stats;
     }
 
     // Find targets
@@ -25,17 +25,29 @@ public class CharacterCombat : MonoBehaviour
     public void TechTarget(Technique tech)
     {
         int range = tech.range;
-        RangeStyle rangeStyle = tech.rangeStyle;
+        //RangeStyle rangeStyle = tech.rangeStyle;
         int height = 100;
         
-        _tileSelector.FindSelectableTiles(height, range, null, Tile.State.Tech, rangeStyle);
+        _tileSelector.FindSelectableTechTiles(range, null);
         if (tech.LOS)
         {
             Vector3 losPosition = _character.LosPos;
             _tileSelector.RemoveNoLOSTiles(losPosition);
         }
     }
-    
+    public void TechTarget(Technique tech, Tile centerTile)
+    {
+        int range = tech.range;
+        //RangeStyle rangeStyle = tech.rangeStyle;
+        int height = 100;
+        
+        _tileSelector.FindSelectableTechTiles(range, centerTile);
+        if (tech.LOS)
+        {
+            Vector3 losPosition = _character.LosPos;
+            _tileSelector.RemoveNoLOSTiles(losPosition);
+        }
+    }
     // Battle
     public void TechAttack(Technique tech, CharacterController attacker, List<CharacterController> targets)
     {

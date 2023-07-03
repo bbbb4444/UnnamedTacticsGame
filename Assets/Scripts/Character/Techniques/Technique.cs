@@ -7,12 +7,6 @@ public enum Tech
 }
 
 
-public enum RangeStyle
-{
-    Line,
-    Circle
-}
-
 [CreateAssetMenu(menuName = "Custom/Technique")]
 public class Technique : ScriptableObject
 {
@@ -21,15 +15,10 @@ public class Technique : ScriptableObject
     [SerializeField] public CharType type;
     [SerializeField] public float power;
     [SerializeField] public int pp;
+    [SerializeField] public int cooldown;
     [SerializeField] public int acc;
     [SerializeField] public int range;
     [SerializeField] public float AOE;
-    [SerializeField] public RangeStyle rangeStyle;
     [SerializeField] public bool LOS;
-
-
-    private void Activate()
-    {
-        
-    }
+    
 }

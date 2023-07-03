@@ -13,6 +13,15 @@ public class TileSelector : MonoBehaviour
         SelectableTiles = new List<Tile>();
     }
 
+    private void OnEnable()
+    {
+        TurnManager.OnBattleEnter += UpdateTiles;
+    }
+
+    private void OnDisable()
+    {
+        TurnManager.OnBattleEnter -= UpdateTiles;
+    }
 
     public void UpdateTiles()
     {
@@ -44,8 +53,7 @@ public class TileSelector : MonoBehaviour
         return tile;
     }
 
-    public virtual void FindSelectableTiles(float maxHeight, float maxDistance, Tile centerTile, Tile.State state,
-        RangeStyle rangeStyle = RangeStyle.Circle)
+    public void FindSelectableTechTiles(float maxDistance, Tile centerTile)
     {
         Tile center;
         if (centerTile == null)
@@ -54,6 +62,40 @@ public class TileSelector : MonoBehaviour
             center = CurrentTile;
         }
         else center = centerTile;
+        
+        
+        Queue<Tile> process = new Queue<Tile>();
+        process.Enqueue(center);
+        center.visited = true;
+
+        while (process.Count > 0)
+        {
+            Tile t = process.Dequeue();
+
+
+            SelectableTiles.Add(t);
+            t.SetSelectable();
+
+
+            if (t.distance >= maxDistance) continue;
+
+            foreach (Tile tile in t.adjacencyList)
+            {
+                if (tile.visited) continue;
+                tile.parent = t;
+                tile.visited = true;
+                tile.distance = t.distance + 1;
+                if (tile.distanceFromActive) tile.distanceFromActive.text = tile.distance.ToString();
+                process.Enqueue(tile);
+            }
+        }
+    }
+    
+    public virtual void FindSelectableMoveTiles(float jumpHeight, float maxMoveDistance)
+    {
+
+        GetCurrentTile();
+        Tile center = CurrentTile;
 
         Queue<Tile> process = new Queue<Tile>();
         process.Enqueue(center);
@@ -63,43 +105,91 @@ public class TileSelector : MonoBehaviour
         {
             Tile t = process.Dequeue();
 
+
             SelectableTiles.Add(t);
             t.SetSelectable();
 
-            if (t.distance >= maxDistance) continue;
 
-            foreach (Tile tile in t.adjacencyList)
+            if (t.distance >= maxMoveDistance) continue;
+
+            foreach (Tile tile in t.GetMovementAdjacency(jumpHeight))
             {
                 if (tile.visited) continue;
-
                 tile.parent = t;
                 tile.visited = true;
                 tile.distance = t.distance + 1;
-
-                switch (state)
-                {
-                    case Tile.State.Move:
-                        if (!MoveCheck(t, tile, maxHeight)) continue;
-                        break;
-                    case Tile.State.Tech:
-                        if (rangeStyle == RangeStyle.Line && !LineCheck(center, tile)) continue;
-                        break;
-                }
-
+                if (tile.distanceFromActive) tile.distanceFromActive.text = tile.distance.ToString();
                 process.Enqueue(tile);
             }
         }
     }
+/*
+        foreach (Tile tile in t.adjacencyList)
+            {
+                if (tile.visited)
+                {
+                    continue;
+                }
+
+                tile.parent = t;
+                tile.visited = true;
+                tile.distance = t.distance + 1;
+                
+                if (tile.distanceFromActive) tile.distanceFromActive.text = tile.distance.ToString();
+                
+                switch (state)
+                {
+                    case Tile.State.Move:
+                        if (!MoveCheck(t, tile, maxHeight))
+                        {
+                            //if (tile.distanceFromActive) tile.distanceFromActive.text = "F";
+                            //if (tile.distance < maxDistance) tile.visited = false;
+                            continue;
+                        }
+                        break;
+                    case Tile.State.Tech:
+                        break;
+                }
+                if (tile.distanceFromActive) tile.distanceFromActive.text = tile.distance.ToString();
+                process.Enqueue(tile);
+            }
+            
+        }*/
+    
 
     public bool MoveCheck(Tile parent, Tile adjacent, float jumpHeight)
     {
-        if (adjacent.HasCharacter()) return false;
-        if (!adjacent.passable) return false;
-        if (Mathf.Abs(parent.height - adjacent.height) >= jumpHeight) return false;
-        if (parent.height < adjacent.height && Physics.Raycast(transform.position + new Vector3(0, 0.6f, 0), Vector3.up,
-                out RaycastHit _, adjacent.height)) return false;
+        if (adjacent.HasCharacter())
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-Ch";
+            return false;
+        }
+
+        if (!adjacent.passable)
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-P";
+            return false;
+        }
+
+        if (Mathf.Abs(parent.height - adjacent.height) >= jumpHeight)
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-JL";
+            return false;
+        }
+
+        if (parent.height < adjacent.height && Physics.Raycast(parent.transform.position + new Vector3(0, 0.6f, 0), Vector3.up,
+                out RaycastHit _, adjacent.height))
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-BA";
+            return false;
+        }
+
         if (parent.height > adjacent.height && Physics.Raycast(adjacent.transform.position + new Vector3(0, 0.5f, 0),
-                Vector3.up, out RaycastHit _, parent.height - adjacent.height)) return false;
+                Vector3.up, out RaycastHit _, parent.height - adjacent.height))
+        {
+            if (adjacent.distanceFromActive) adjacent.distanceFromActive.text = "F-BB";
+            return false;
+        }
         return true;
     }
 
@@ -141,6 +231,8 @@ public class TileSelector : MonoBehaviour
 
     private void Update()
     {
+        
+        
         /*
         if (TurnManager.GetActivePlayer() == null) return;
         CharacterController activePlayer = TurnManager.GetActivePlayer();

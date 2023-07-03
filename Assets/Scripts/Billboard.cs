@@ -2,13 +2,15 @@ using UnityEngine;
 
 public class Billboard : MonoBehaviour
 {
-    private Camera _mainCamera;
+    private Camera MainCamera { get; set; }
     void Start()
     {
-        _mainCamera = Camera.main;
+        MainCamera = Camera.main;
     }
     void LateUpdate()
-    { 
-        transform.rotation = _mainCamera.transform.rotation;
+    {
+        if (!MainCamera) MainCamera = Camera.main;
+        
+        else transform.rotation = MainCamera.transform.rotation;
     }
 }

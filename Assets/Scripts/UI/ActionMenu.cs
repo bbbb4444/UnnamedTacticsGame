@@ -1,43 +1,31 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class ActionMenu : UIScreen
 {
-    public GameObject actionMenuPanel;
     public Button moveButton;
-    public Button attackButton;
     public Button techButton;
-    public Button itemButton;
-    public Button defendButton;
-    
+    public Button waitButton;
+
     public static event UnityAction OnMoveSelected;
-    public static event UnityAction OnAttackSelected;
-    public static event UnityAction OnTechSelected;
-    public static event UnityAction OnItemSelected;
-    public static event UnityAction OnDefendSelected;
-    public static ActionType currentAction = ActionType.None;
+    public static ActionType CurrentAction = ActionType.None;
     public enum ActionType
     {
         None,       // Default or invalid action
         Move,       // Movement action
-        Attack,     // Attack action
         Tech,      // Technique action
-        Item,       // Item action
-        Defend      // Defend action
+        Wait      // Wait action
     }
 
-    private void Update()
-    {
-        
-    }
 
     
     protected override void Awake()
     {
         base.Awake();
-        actionMenuPanel = GameObject.FindGameObjectWithTag("ActionMenuPanel");
     }
 
     public override void Open()
@@ -45,72 +33,38 @@ public class ActionMenu : UIScreen
         base.Open();
         
         TurnManager.GetActivePlayer().tileSelector.ResetSelectableTiles();
-        EnableActionButtons();
+
+        moveButton.interactable = TurnManager.GetActivePlayer().CanMove;
+        techButton.interactable = TurnManager.GetActivePlayer().CanOtherAction;
+        
         if (moveButton.interactable) moveButton.Select();
-        else attackButton.Select();
+        else techButton.Select();
     }
 
-    public override void Close()
-    {
-        if (!IsOpen) return;
-        
-        DisableOtherActionButtons();
-        
-        base.Close();
-    }
     private void OnEnable()
     {
-        ActionMenuTech.GoBack += EnableActionButtons;
-        
-        CharacterController.OnEndMovePhase += DisableMoveButton;
-        CharacterController.OnEndOtherActionPhase += DisableOtherActionButtons;
-        
         AIHandler.PrepareMove += AISelectMove;
         AIHandler.PrepareTech += AISelectTech;
     }
 
     private void OnDisable()
     {
-        ActionMenuTech.GoBack -= EnableActionButtons;
-        
-        CharacterController.OnEndMovePhase -= DisableMoveButton;
-        CharacterController.OnEndOtherActionPhase -= DisableOtherActionButtons;
-        
         AIHandler.PrepareMove -= AISelectMove;
         AIHandler.PrepareTech -= AISelectTech;
     }
-    
 
-    public void HideActionMenu()
+    public void OnCancel()
     {
+        if (!TurnManager.GetActivePlayer().CanOtherAction) return;
+        if (TurnManager.GetActivePlayer().CanMove) return;
         
+        TurnManager.GetActivePlayer().ResetMovement();
+        TurnManager.GetActivePlayer().BeginPhase();
     }
 
-    public void EnableActionButtons()
-    {
-        moveButton.interactable = true;
-        attackButton.interactable = true;
-        techButton.interactable = true;
-        itemButton.interactable = true;
-        defendButton.interactable = true;
-    }
-
-    public void DisableMoveButton()
-    {
-        moveButton.interactable = false;
-    }
-    public void DisableOtherActionButtons()
-    {
-        moveButton.interactable = false;
-        attackButton.interactable = false;
-        techButton.interactable = false;
-        itemButton.interactable = false;
-        defendButton.interactable = false;
-    }
-    
     public void OnMoveButtonClicked()
     {
-        currentAction = ActionType.Move;
+        CurrentAction = ActionType.Move;
         OnMoveSelected?.Invoke();
         if (TurnManager.GetActivePlayer().CompareTag("Player"))
         {
@@ -118,32 +72,18 @@ public class ActionMenu : UIScreen
         }
         UIManager.Instance.CloseScreen(ScreenType.ActionMenu);
     }
-
-    public void OnAttackButtonClicked()
-    {
-        //currentAction = ActionType.Attack;
-        //OnAttackSelected?.Invoke();
-        //HideActionMenu();
-    }
+    
 
     public void OnTechButtonClicked()
     {
-        currentAction = ActionType.Tech;
+        CurrentAction = ActionType.Tech;
         UIManager.Instance.OpenScreen(ScreenType.ActionMenuTech);
     }
 
-    public void OnItemButtonClicked()
+    public void OnWaitButtonClicked()
     {
-        OnItemSelected?.Invoke();
-        HideActionMenu();
+        TurnManager.GetActivePlayer().EndTurn();
     }
-
-    public void OnDefendButtonClicked()
-    {
-        OnDefendSelected?.Invoke();
-        HideActionMenu();
-    }
-    
     
     // AI
     void AISelectMove()

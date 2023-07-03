@@ -10,20 +10,17 @@ using UnityEngine.UI;
 public class ActionMenuTech : UIScreen
 {
     public static UnityAction OnTechClicked;
-    public static UnityAction GoBack;
     
     private bool _firstNavigation = true;
-    public Canvas canvas;
-    private Technique[] _techs = new Technique[4];
+    private List<Technique> _techs = new();
     private Technique _currentTech;
-
+    [SerializeField] private Technique none;
     private TechHandler _techHandler;
     
     public Button techButton1;
     public Button techButton2;
     public Button techButton3;
     public Button techButton4;
-    public Button backButton;
     private Button[] _techButtons;
     private Dictionary<Button, Technique> ButtonToTech = new Dictionary<Button, Technique>();
 
@@ -38,8 +35,6 @@ public class ActionMenuTech : UIScreen
 
     private void Start()
     {
-        canvas = GetComponent<Canvas>();
-        
         SetupTechNameReferences();
         EnableButtons(false);
         
@@ -69,7 +64,7 @@ public class ActionMenuTech : UIScreen
         EnableButtons(true);
         CharacterController activeChar = TurnManager.GetActivePlayer();
         activeChar.tileSelector.ResetSelectableTiles();
-        _techHandler = activeChar.GetTechHandler();
+        _techHandler = activeChar.TechHandler;
         
         SetupTechs(_techHandler);
         SetupTechNames();
@@ -86,13 +81,23 @@ public class ActionMenuTech : UIScreen
     private void SetupTechs(TechHandler th)
     {
         ButtonToTech.Clear();
+        _techs.Clear();
         
-        for (int i = 0; i < _techs.Length; i++)
+        List<Technique> techs = th.Techinques;
+        
+        for (int i = 0; i < _techLabels.Length; i++)
         {
-            Technique tech = th.GetTech(i);
-            _techs[i] = tech;
-            
-            ButtonToTech.Add(_techButtons[i], _techs[i]);
+            if (i < techs.Count)
+            {
+                Technique tech = techs[i];
+                _techs.Add(tech);
+                ButtonToTech.Add(_techButtons[i], _techs[i]);
+            }
+            else
+            {
+                _techs.Add(none);
+                ButtonToTech.TryAdd(_techButtons[i], _techs[i]);
+            }
         }
     }
 
@@ -101,7 +106,7 @@ public class ActionMenuTech : UIScreen
     {
         for (int i = 0; i < _techLabels.Length; i++)
         {
-            if (_techs[i] == null)
+            if (i >= _techs.Count)
             {
                 _techLabels[i].text = "None";
             }
@@ -135,7 +140,7 @@ public class ActionMenuTech : UIScreen
     // Navigating
     public void OnNavigate()
     {
-        if (!canvas.enabled) return;
+        if (!IsOpen) return;
         
         if (_firstNavigation)
         {
@@ -148,7 +153,7 @@ public class ActionMenuTech : UIScreen
 
     public void OnCancel()
     {
-         UIManager.Instance.OpenScreen(UIManager.Instance.LastScreen);   
+         UIManager.Instance.OpenScreen(lastScreen);   
     }
 
     private void UpdateTechInfo()
@@ -185,6 +190,7 @@ public class ActionMenuTech : UIScreen
     }
     private Button GetTechButton()
     {
+        if (ButtonToTech.Count == 0) SetupTechs(_techHandler);
         foreach (KeyValuePair<Button, Technique> entry in ButtonToTech)
         {
             if (entry.Value == _techHandler.SelectedTech)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -6,7 +7,10 @@ public class TurnManager : MonoBehaviour
 {
 
     public static event UnityAction OnTurnEnd;
-    
+    public static event UnityAction OnBattleEnter;
+
+    public static Dictionary<GameObject, CharacterController> PlayerObjectToController { get; set; }
+
     private static List<CharacterController> _playerTeam = new();
     private static List<CharacterController> _playerTeamDead = new();
     private static List<CharacterController> _enemyTeam = new();
@@ -17,6 +21,9 @@ public class TurnManager : MonoBehaviour
     
     public static void StartTurns()
     {
+        OnBattleEnter?.Invoke();
+
+        InitializeCharacterDict();
         InitializeTurnQueue();
         StartNextTurn();
     }
@@ -40,7 +47,7 @@ public class TurnManager : MonoBehaviour
     private static void StartTurn()
     {
         print("Turn Manager Start " + _activePlayer.tag);
-        _activePlayer.Ready = true;
+        _activePlayer.BeginTurn();
     }
 
     public static void EndTurn()
@@ -57,15 +64,25 @@ public class TurnManager : MonoBehaviour
         _enemyTeam.Clear();
         _enemyTeamDead.Clear();
         _turnQueue.Clear();
+        PlayerObjectToController.Clear();
+    }
+
+    static void InitializeCharacterDict()
+    {
+        PlayerObjectToController = new Dictionary<GameObject, CharacterController>();
+        for (int i = 0; i < GameManager.Instance.playerControllers.Count; i++)
+        {
+            PlayerObjectToController.TryAdd(GameManager.Instance.playerTeam[i], GameManager.Instance.playerControllers[i]);
+        }
     }
     static void InitializeTurnQueue()
     {
         int totalPlayers = _playerTeam.Count + _enemyTeam.Count;
         List<CharacterController> tempTurnQueue = new();
-        int i = 0;
 
         foreach (CharacterController player in _playerTeam)
         {
+            print(player.CharType.type);
             tempTurnQueue.Add(player);
         }
         foreach (CharacterController enemy in _enemyTeam)
@@ -73,15 +90,11 @@ public class TurnManager : MonoBehaviour
             tempTurnQueue.Add(enemy);
         }
         
-        tempTurnQueue.Sort( (char1, char2) => char2.GetStats().GetStat(Stat.Speed).CompareTo(char1.GetStats().GetStat(Stat.Speed)));
+        tempTurnQueue.Sort( (char1, char2) => char2.Stats.GetStat(Stat.Speed).CompareTo(char1.Stats.GetStat(Stat.Speed)));
         
         foreach (CharacterController cc in tempTurnQueue)
         {
-            print(cc.GetStats().GetStat(Stat.Speed));
-        }
-
-        foreach (CharacterController cc in tempTurnQueue)
-        {
+            cc.Reset();
             _turnQueue.Enqueue(cc);
         }
     }
@@ -90,7 +103,6 @@ public class TurnManager : MonoBehaviour
 
     public static void AddUnit(CharacterController unit)
     {
-        print(unit.tag);
         if (unit.CompareTag("Player")) _playerTeam.Add(unit);
         else if (unit.CompareTag("NPC")) _enemyTeam.Add(unit);
     }
@@ -103,6 +115,7 @@ public class TurnManager : MonoBehaviour
             _playerTeamDead.Add(unit);
             if (_playerTeamDead.Count == _playerTeam.Count)
             {
+                GetActivePlayer().Ready = false;
                 ResetQueues();
                 GameManager.Instance.LoseBattle();
             }
@@ -112,7 +125,7 @@ public class TurnManager : MonoBehaviour
             _enemyTeamDead.Add(unit);
             if (_enemyTeamDead.Count == _enemyTeam.Count)
             {
-                print("WIN");
+                GetActivePlayer().Ready = false;
                 ResetQueues();
                 GameManager.Instance.WinBattle();
             }

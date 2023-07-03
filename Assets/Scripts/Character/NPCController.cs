@@ -1,13 +1,14 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class NPCController : CharacterController
 {
     public AIHandler _aiHandler;
 
-    protected override void Start()
+    protected override void Awake()
     {
-        _aiHandler = GetComponent<AIHandler>();
-        base.Start();
+        _aiHandler = GetComponent<AIHandler>() ? GetComponent<AIHandler>() : this.AddComponent<AIHandler>();
+        base.Awake();
     }
     
     public override void BeginPhase()

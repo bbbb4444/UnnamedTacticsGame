@@ -1,15 +1,16 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class Ready : UIScreen
 {
-    [SerializeField] private Button StartButton;
+    [SerializeField] private Button startButton;
 
     public override void Open()
     {
         base.Open();
         
-        StartButton.Select();
+        startButton.Select();
     }
     
     public void OnSubmit()
@@ -18,6 +19,5 @@ public class Ready : UIScreen
         
         Close();
         TurnManager.StartTurns();
-        print("hello");
     }
 }

@@ -1,20 +1,28 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+
 public enum ScreenType
 {
+    None,
+    MainMenu,
     ActionMenu,
     ActionMenuTech,
     PauseMenu,
     Ready,
-    DarkEvent,
+    DarkEvent1,
+    DarkEvent2,
+    LightEvent1,
+    LightEvent2,
+    ChooseYourFirstCharacter,
+    ActionUnitInfo,
+    ChooseYourRewardCharacter
 }
 public class UIManager : MonoBehaviour
 {
    
     private Dictionary<ScreenType, UIScreen> _screens;
     
-    public ScreenType LastScreen { get; set; }
     public static UIManager Instance;
     private void Awake()
     {
@@ -38,12 +46,6 @@ public class UIManager : MonoBehaviour
  
     public void OpenScreen(ScreenType targetScreen)
     {
-        StartCoroutine(OpenScreenDelay(targetScreen));
-    }
-
-    private IEnumerator OpenScreenDelay(ScreenType targetScreen)
-    {
-        yield return new WaitForSeconds(0f);
         foreach (var screen in _screens)
         {
             if (screen.Value.ScreenType != targetScreen)
@@ -52,11 +54,22 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                LastScreen = screen.Value.ScreenType;
                 screen.Value.Open();
             }
         }
+        // UIScreens enable and disable the Player Input component when they open and close.
+        // For some reason, this causes input to stop being registered by the EventSystem unless it is toggled off and on.
+        // This is why this code is needed.
+        EventSystem.current.currentInputModule.enabled = false;
+        EventSystem.current.currentInputModule.enabled = true;
     }
+    
+    public void OpenScreenAdditive(ScreenType targetScreen)
+    {
+        if (_screens[targetScreen].IsOpen) return;
+        _screens[targetScreen].Open();
+    }
+
     public void CloseScreen(ScreenType targetScreen)
     {
         if (_screens.TryGetValue(targetScreen, out UIScreen uiScreen))
@@ -64,7 +77,13 @@ public class UIManager : MonoBehaviour
             uiScreen.Close();
         }
     }
-    
+    public void CloseAllScreens()
+    {
+        foreach (var screen in _screens)
+        {
+            if (screen.Value.IsOpen) screen.Value.Close();
+        }
+    }
     
     public bool IsScreenOpen(ScreenType targetScreen)
     {

@@ -14,7 +14,7 @@ public class LandmarkManager : MonoBehaviour
 
     private void OnEnable()
     {
- 
+        
     }
 
     private void Awake()
@@ -31,6 +31,10 @@ public class LandmarkManager : MonoBehaviour
     
     void Start()
     {
+        LandmarkInitializer[] initializers = FindObjectsOfType<LandmarkInitializer>();
+        SetupLandmarkConnections(initializers);
+        current = GetRoot(initializers);
+        
         _landmarkInput = GetComponent<LandmarkInput>();
         _landmarks = FindObjectsOfType<Landmark>();
         SelectLandmark(current);
@@ -38,6 +42,34 @@ public class LandmarkManager : MonoBehaviour
         current.Select();
     }
 
+    private void SetupLandmarkConnections(LandmarkInitializer[] initializers)
+    {
+        foreach (LandmarkInitializer initializer in initializers)
+        {
+            Landmark landmark = initializer.landmark;
+
+            foreach (LandmarkInitializer nextInitializer in initializer.nextInitializers)
+            {
+                Landmark nextLandmark = nextInitializer.landmark;
+                landmark.nextLandmarks.Add(nextLandmark);
+            }
+            foreach (LandmarkInitializer prevInitializer in initializer.prevInitializers)
+            {
+                Landmark prevLandmark = prevInitializer.landmark;
+                landmark.prevLandmarks.Add(prevLandmark);
+            }
+        }
+    }
+
+    private Landmark GetRoot(LandmarkInitializer[] initializers)
+    {
+        foreach (LandmarkInitializer initializer in initializers)
+        {
+            if (initializer.root) return initializer.landmark;
+        }
+
+        return null;
+    }
     public void SelectLandmark(Landmark landmark)
     {
         FindCursor();

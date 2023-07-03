@@ -3,24 +3,23 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 public class CursorMovement : MonoBehaviour
 {
+    public static event UnityAction OnSelectTech;
+    
     private Transform _transform;
     private Transform _cursorGraphic;
     private GameObject _cameraPivot;
     private int _rotationDeg;
-    private bool _disable = true;
-    private bool _isActive = true;
-    
+
     private bool TechConfirm { get; set; }
     
     private CharacterController _activeCharacter;
-    private CharacterController _targetCharacter;
-    
-    private bool _isFollowing;
-    
+    public CharacterController HoverCharacter { get; set; }
+
     public bool EnableClick { get; set; }
     public bool EnableMovement { get; set; }
     void Start()
@@ -39,7 +38,7 @@ public class CursorMovement : MonoBehaviour
         
         TurnManager.OnTurnEnd += Disable;
         CharacterController.OnPhaseStart += MoveToActivePlayer;
-
+        
         ActionMenuTech.OnTechClicked += BeginAI;
     }
 
@@ -57,23 +56,19 @@ public class CursorMovement : MonoBehaviour
     public void OnClick()
     {
         if (!EnableClick) return;
-        print(ActionMenu.currentAction);
-        switch (ActionMenu.currentAction)
+        print(ActionMenu.CurrentAction);
+        switch (ActionMenu.CurrentAction)
         {
             case ActionMenu.ActionType.None:
                 break;
             case ActionMenu.ActionType.Move:
                 TileSelectMove();
                 break;
-            case ActionMenu.ActionType.Attack:
-                break;
             case ActionMenu.ActionType.Tech:
                 if (!TechConfirm) TileSelectTech();
                 else ConfirmTech();
                 break;
-            case ActionMenu.ActionType.Item:
-                break;
-            case ActionMenu.ActionType.Defend:
+            case ActionMenu.ActionType.Wait:
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -84,10 +79,9 @@ public class CursorMovement : MonoBehaviour
     {
         if (!EnableClick) return;
         TechConfirm = false;
-        print("Last Screen: " + UIManager.Instance.LastScreen);
         Enable(false);
         MoveToActivePlayer();
-        UIManager.Instance.OpenScreen(UIManager.Instance.LastScreen);
+        UIManager.Instance.OpenScreen(ScreenType.ActionMenu); 
     }
     
     private void TileSelectMove()
@@ -106,7 +100,8 @@ public class CursorMovement : MonoBehaviour
         EnableMovement = false;
         Tile currentTile = GetTile();
         if (currentTile == null || !currentTile.selectable) return;
-        TurnManager.GetActivePlayer().GetTechHandler().ShowArea(currentTile);
+        TurnManager.GetActivePlayer().TechHandler.ShowArea(currentTile);
+        OnSelectTech?.Invoke();
     }
     private void ConfirmTech()
     {
@@ -117,14 +112,18 @@ public class CursorMovement : MonoBehaviour
         Disable();
         TurnManager.GetActivePlayer().TechAttack(targets);
     }
-    
-    
+
+    private bool CanMove()
+    {
+        return (!UIManager.Instance.IsScreenOpen(ScreenType.ActionMenu) &&
+                !UIManager.Instance.IsScreenOpen(ScreenType.ActionMenuTech) &&
+                EnableMovement);
+    }
     // Moving the cursor
     public void OnMove(InputValue value)
     {
-        if (_isFollowing || !EnableMovement) return;
-        
-        
+        if (!CanMove()) return;
+
         int x = (int) value.Get<Vector2>().x;
         int z = (int) value.Get<Vector2>().y;
         Vector3 movement = new(x, 0, z);
@@ -140,8 +139,20 @@ public class CursorMovement : MonoBehaviour
         
         y = CalcLowerY();
         _transform.position += new Vector3(0,y,0);
+
+        OpenUnitFrame();
     }
 
+    private void OpenUnitFrame()
+    {
+        UIManager.Instance.CloseScreen(ScreenType.ActionUnitInfo);
+        if (GetTile().HasCharacter())
+        {
+            HoverCharacter = GetTile().GetCharacter();
+            UIManager.Instance.OpenScreenAdditive(ScreenType.ActionUnitInfo);
+        }
+    }
+    
     float CalcHigherY(Vector3 direction)
     {
         // Calc positive y (to raise the cursor)
@@ -182,20 +193,11 @@ public class CursorMovement : MonoBehaviour
         Vector3 bottomPos = new Vector3(targetPos.x, minY-0.5f, targetPos.z);
         _transform.position = bottomPos;
     }
-    public void Follow(GameObject targetObj, float minY)
-    {
-        Vector3 targetPos = targetObj.transform.position;
-        Vector3 bottomPos = new Vector3(targetPos.x, minY-0.5f, targetPos.z);
-        _transform.position = bottomPos;
-        _transform.SetParent(targetObj.transform);
-        _isFollowing = true;
-    }
     public void Follow(GameObject targetObj)
     {
         if (targetObj == null)
         {
             _transform.SetParent(null);
-            _isFollowing = false;
         }
         /*
         else
@@ -277,8 +279,10 @@ public class CursorMovement : MonoBehaviour
         float minY = targetCharacter.GetComponent<CharacterController>().ccollider.bounds.min.y;
         print(minY);
         MoveTo(targetCharacter, minY);
+        OpenUnitFrame();
         yield return new WaitForSeconds(0.5f);
         OnClick();
+        
         yield return new WaitForSeconds(0.5f);
         OnClick();
     }

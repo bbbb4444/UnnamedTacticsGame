@@ -17,12 +17,10 @@ public class SpawnpointManager : MonoBehaviour
         PlayerSpawnFields = Array.FindAll(SpawnFields, obj => obj.playerField);
         EnemySpawnFields = Array.FindAll(SpawnFields, obj => !obj.playerField);
         
-        print(EnemySpawnFields.Length);
         
         PlayerTeam = GameManager.Instance.playerTeam;
         EnemyTeam = GameManager.Instance.enemyTeam;
         
-        print(EnemyTeam.Count);
         
         SpawnPlayers();
         SpawnEnemies();

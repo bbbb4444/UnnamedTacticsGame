@@ -6,26 +6,19 @@ public class TechHandler : MonoBehaviour
     private CharacterController _controller;
     private CharStats _stats;
     [SerializeField]
-    public List<Technique> Techinques = new List<Technique>();
-    //private Dictionary<Technique, int> _techToPP;
+    public List<Technique> Techinques = new();
     private void Start()
     {
         _controller = GetComponent<CharacterController>();
-        /*
-        _techToPP = new Dictionary<Technique, int>
-        {
-            { Techinques[0], Techinques[0].pp },
-            { Techinques[1], Techinques[1].pp },
-            { Techinques[2], Techinques[2].pp },
-            { Techinques[3], Techinques[3].pp }
-        };
-        */
+        if (Techinques.Count == 0) AddTech(_controller.Stats.movePool[0]);
+        if (CompareTag("Player")) AddTech(Resources.Load<Technique>("OPGG"));
     }
 
     public Technique SelectedTech { get; set; }
     
-    public void Activate()
+    public void AddTech(Technique tech)
     {
+        Techinques.Add(Instantiate(tech));
     }
     
     public Technique GetTech(int index)
@@ -46,7 +39,7 @@ public class TechHandler : MonoBehaviour
     public void ShowArea(Tile center)
     {
         _controller.tileSelector.ResetSelectableTiles();
-        _controller.tileSelector.FindSelectableTiles(100, SelectedTech.AOE, center, Tile.State.Tech, RangeStyle.Circle);
+        _controller.tileSelector.FindSelectableTechTiles(SelectedTech.AOE, center);
     }
 }
 
