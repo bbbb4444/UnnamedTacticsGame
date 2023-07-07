@@ -12,7 +12,7 @@ public class BattleLandmark : Landmark
         base.Awake();
 
         pool = (EnemyPool.Pool) Random.Range(0, 2);
-        EnemyCount = Random.Range(2, 3);
+        EnemyCount = Random.Range(2, 4);
         enemyTeam = EnemyPool.Instance.GetRandomEnemies(pool, EnemyCount);
     }
 

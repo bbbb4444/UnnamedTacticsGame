@@ -13,6 +13,7 @@ using LandmarkType = LandmarkManager.LandmarkType;
 public class LandmarkInitializer : MonoBehaviour
 {
     public bool root;
+    public bool boss;
     
     private LandmarkType _landmarkType;
     public Landmark landmark;
@@ -31,7 +32,11 @@ public class LandmarkInitializer : MonoBehaviour
     /// <returns>A random landmarkType num, weighted.</returns>
     private LandmarkType GetRandomLandmarkType()
     {
-        LandmarkType type = LandmarkManager.Instance.landmarkSequence[0];
+        LandmarkType type;
+        if (root) type = LandmarkType.Battle;
+        else if (boss) type = LandmarkType.Boss;
+        else type = LandmarkManager.Instance.landmarkSequence[0];
+        
         LandmarkManager.Instance.landmarkSequence.RemoveAt(0);
         return type;
     }
@@ -50,6 +55,9 @@ public class LandmarkInitializer : MonoBehaviour
             case LandmarkType.Event:
                 SetupEvent();
                 break;
+            case LandmarkType.Boss:
+                SetupBoss();
+                break;
         }
     }
 
@@ -62,4 +70,10 @@ public class LandmarkInitializer : MonoBehaviour
     {
         landmark = this.AddComponent<EventLandmark>();
     }
+    
+    private void SetupBoss()
+    {
+        landmark = this.AddComponent<BossLandmark>();
+    }
+
 }

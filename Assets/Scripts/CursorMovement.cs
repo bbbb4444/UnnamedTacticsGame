@@ -20,6 +20,7 @@ public class CursorMovement : MonoBehaviour
     private CharacterController _activeCharacter;
     public CharacterController HoverCharacter { get; set; }
 
+    private bool _isAIClick;
     public bool EnableClick { get; set; }
     public bool EnableMovement { get; set; }
     void Start()
@@ -55,25 +56,27 @@ public class CursorMovement : MonoBehaviour
 
     public void OnClick()
     {
-        if (!TurnManager.IsPlayerTurn) return;
-        if (!EnableClick) return;
-        print(ActionMenu.CurrentAction);
-        switch (ActionMenu.CurrentAction)
+        if (TurnManager.IsPlayerTurn && EnableClick || _isAIClick)
         {
-            case ActionMenu.ActionType.None:
-                break;
-            case ActionMenu.ActionType.Move:
-                TileSelectMove();
-                break;
-            case ActionMenu.ActionType.Tech:
-                if (!TechConfirm) TileSelectTech();
-                else ConfirmTech();
-                break;
-            case ActionMenu.ActionType.Wait:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            print(ActionMenu.CurrentAction);
+            switch (ActionMenu.CurrentAction)
+            {
+                case ActionMenu.ActionType.None:
+                    break;
+                case ActionMenu.ActionType.Move:
+                    TileSelectMove();
+                    break;
+                case ActionMenu.ActionType.Tech:
+                    if (!TechConfirm) TileSelectTech();
+                    else ConfirmTech();
+                    break;
+                case ActionMenu.ActionType.Wait:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }  
         }
+   
     }
 
     public void OnCancel()
@@ -273,6 +276,13 @@ public class CursorMovement : MonoBehaviour
         StartCoroutine(AIActions());
     }
 
+    private void AIClick()
+    {
+        _isAIClick = true;
+        OnClick();
+        _isAIClick = false;
+    }
+    
     private IEnumerator AIActions()
     {
         yield return new WaitForSeconds(0.2f);
@@ -282,10 +292,9 @@ public class CursorMovement : MonoBehaviour
         print(minY);
         MoveTo(targetCharacter, minY);
         OpenUnitFrame();
-        yield return new WaitForSeconds(0.5f);
-        OnClick();
-        
-        yield return new WaitForSeconds(0.5f);
-        OnClick();
+        yield return new WaitForSeconds(0.4f);
+        AIClick();
+        yield return new WaitForSeconds(0.4f);
+        AIClick();
     }
 }

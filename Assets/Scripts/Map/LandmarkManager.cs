@@ -9,7 +9,8 @@ public class LandmarkManager : MonoBehaviour
     public enum LandmarkType
     {
         Battle,
-        Event
+        Event,
+        Boss
     }
     
     [SerializeField] private CursorMovement cursor;
