@@ -55,6 +55,7 @@ public class CursorMovement : MonoBehaviour
 
     public void OnClick()
     {
+        if (!TurnManager.IsPlayerTurn) return;
         if (!EnableClick) return;
         print(ActionMenu.CurrentAction);
         switch (ActionMenu.CurrentAction)
@@ -77,6 +78,7 @@ public class CursorMovement : MonoBehaviour
 
     public void OnCancel()
     {
+        if (!TurnManager.IsPlayerTurn) return;
         if (!EnableClick) return;
         TechConfirm = false;
         Enable(false);
@@ -115,7 +117,7 @@ public class CursorMovement : MonoBehaviour
 
     private bool CanMove()
     {
-        return (!UIManager.Instance.IsScreenOpen(ScreenType.ActionMenu) &&
+        return (TurnManager.IsPlayerTurn && !UIManager.Instance.IsScreenOpen(ScreenType.ActionMenu) &&
                 !UIManager.Instance.IsScreenOpen(ScreenType.ActionMenuTech) &&
                 EnableMovement);
     }

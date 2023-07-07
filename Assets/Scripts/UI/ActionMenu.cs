@@ -2,11 +2,14 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class ActionMenu : UIScreen
 {
+    private PlayerInputController _playerInputController;
+    
     public Button moveButton;
     public Button techButton;
     public Button waitButton;
@@ -21,26 +24,35 @@ public class ActionMenu : UIScreen
         Wait      // Wait action
     }
 
-
     
-    protected override void Awake()
-    {
-        base.Awake();
-    }
 
     public override void Open()
     {
         base.Open();
         
+
+
         TurnManager.GetActivePlayer().tileSelector.ResetSelectableTiles();
 
         moveButton.interactable = TurnManager.GetActivePlayer().CanMove;
         techButton.interactable = TurnManager.GetActivePlayer().CanOtherAction;
+
+
+        if (!TurnManager.IsPlayerTurn) UIManager.Instance.DisablePlayerInput();
+        else UIManager.Instance.EnablePlayerInput();
+        
         
         if (moveButton.interactable) moveButton.Select();
         else techButton.Select();
     }
 
+    protected override void Awake()
+    {
+        base.Awake();
+
+        _playerInputController = GetComponent<PlayerInputController>();
+    }
+    
     private void OnEnable()
     {
         AIHandler.PrepareMove += AISelectMove;
@@ -66,7 +78,7 @@ public class ActionMenu : UIScreen
     {
         CurrentAction = ActionType.Move;
         OnMoveSelected?.Invoke();
-        if (TurnManager.GetActivePlayer().CompareTag("Player"))
+        if (TurnManager.IsPlayerTurn)
         {
             TurnManager.GetActivePlayer().GetMovement().FindSelectableTiles();
         }

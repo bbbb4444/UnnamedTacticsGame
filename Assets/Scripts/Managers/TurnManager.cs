@@ -18,11 +18,13 @@ public class TurnManager : MonoBehaviour
     
     private static Queue<CharacterController> _turnQueue = new Queue<CharacterController>();
     private static CharacterController _activePlayer;
+
+    public static bool IsPlayerTurn;
     
     public static void StartTurns()
     {
         OnBattleEnter?.Invoke();
-
+        
         InitializeCharacterDict();
         InitializeTurnQueue();
         StartNextTurn();
@@ -36,11 +38,11 @@ public class TurnManager : MonoBehaviour
     
     static void StartNextTurn()
     {
-        _activePlayer = _turnQueue.Dequeue();
-        while (IsDead(_activePlayer))
-        {
-            _activePlayer = _turnQueue.Dequeue();
-        }
+        do { _activePlayer = _turnQueue.Dequeue();
+        } while (IsDead(_activePlayer));
+
+        IsPlayerTurn = _activePlayer.CompareTag("Player");
+        
         StartTurn();
     }
 
@@ -115,31 +117,47 @@ public class TurnManager : MonoBehaviour
             _playerTeamDead.Add(unit);
             if (_playerTeamDead.Count == _playerTeam.Count)
             {
-                GetActivePlayer().Ready = false;
-                ResetQueues();
-                GameManager.Instance.LoseBattle();
+                Lose();
             }
         }
+        
         else if (unit.CompareTag("NPC"))
         {
             _enemyTeamDead.Add(unit);
             if (_enemyTeamDead.Count == _enemyTeam.Count)
             {
-                GetActivePlayer().Ready = false;
-                ResetQueues();
-                GameManager.Instance.WinBattle();
+                Win();
             }
         }
     }
 
+    private static void Win()
+    {
+        GetActivePlayer().Ready = false;
+        foreach (CharacterController character in _enemyTeam)
+        {
+            Destroy(character.gameObject);
+        }
+        ResetQueues();
+        GameManager.Instance.WinBattle();
+    }
+    
+    private static void Lose()
+    {
+        GetActivePlayer().Ready = false;
+        ResetQueues();
+        GameManager.Instance.LoseBattle();
+    }
+    
+    public static bool IsGameOver()
+    {
+        return (_playerTeamDead.Count == _playerTeam.Count || _enemyTeamDead.Count == _enemyTeam.Count);
+    }
+    
     private static bool IsDead(CharacterController unit)
     {
         if (unit.CompareTag("Player")) return _playerTeamDead.Contains(unit);
-        else if (unit.CompareTag("NPC")) return _enemyTeamDead.Contains(unit);
-        else
-        {
-            print("error, unit is neither player nor npc");
-            return false;
-        }
+        if (unit.CompareTag("NPC")) return _enemyTeamDead.Contains(unit);
+        else throw new Exception("CharacterController has neither Player nor NPC tag");
     }
 }

@@ -12,9 +12,10 @@ public class EventAugment2 : Event
 {
     [SerializeField] protected Augment augment;
 
-    private List<CharType> newTypes = new();
-    private List<CharacterController> randomMembers = new();
-    private List<int> randomMemberIndices = new();
+    public List<CharType> newTypes = new();
+    public List<CharacterController> randomMembers = new();
+    public List<int> randomMemberIndices = new();
+    
     public override void Open()
     {
         base.Open();
@@ -44,22 +45,37 @@ public class EventAugment2 : Event
     {
         randomMembers[0].CharType = newTypes[0];
         GameObject augmentedPlayer = randomMembers[0].gameObject;
+
         int index = randomMemberIndices[0];
+        
         GameManager.Instance.playerTeam[index] = augmentedPlayer;
         GameManager.Instance.playerControllers[index] = randomMembers[0];
-        UIManager.Instance.CloseAllScreens();
-        LandmarkManager.Instance.WinLandmark();
+
+        Exit();
     }
     public void OnOption2ButtonClicked()
     {
         randomMembers[1].CharType = newTypes[1];
         GameObject augmentedPlayer = randomMembers[1].gameObject;
-        int index = randomMemberIndices[1];
+        
+        int index = randomMemberIndices[0];
+        
         GameManager.Instance.playerTeam[index] = augmentedPlayer;
         GameManager.Instance.playerControllers[index] = randomMembers[1];
+
+        Exit();
+    }
+
+    private void Exit()
+    {
+        newTypes.Clear();
+        randomMembers.Clear();
+        randomMemberIndices.Clear();
+        
         UIManager.Instance.CloseAllScreens();
         LandmarkManager.Instance.WinLandmark();
     }
+    
     private List<CharacterController> SelectRandomPartyMembers(int amount)
     {
         List<CharacterController> players = GameManager.Instance.playerControllers;
@@ -70,8 +86,9 @@ public class EventAugment2 : Event
         for (int i = 0; i < amount; i++)
         {
             int rInt = Random.Range(0, players.Count);
-            randomMemberIndices.Add(rInt);
-            selectedPlayers.Add(players[rInt]);
+            CharacterController rCharacter = players[rInt];
+            randomMemberIndices.Add(GameManager.Instance.playerControllers.IndexOf(rCharacter));
+            selectedPlayers.Add(rCharacter);
             if (players.Count > 1) players.Remove(players[rInt]);
         }
 

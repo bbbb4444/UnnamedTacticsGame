@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -9,6 +11,8 @@ using UnityEngine.UI;
 
 public class ActionMenuTech : UIScreen
 {
+    private PlayerInputController _playerInputController;
+    
     public static UnityAction OnTechClicked;
     
     private bool _firstNavigation = true;
@@ -32,12 +36,20 @@ public class ActionMenuTech : UIScreen
     public TextMeshProUGUI ppLabel;
     public Image typeIcon;
     
+    protected override void Awake()
+    {
+        base.Awake();
 
+        _playerInputController = GetComponent<PlayerInputController>();
+    }
+    
     private void Start()
     {
         SetupTechNameReferences();
-        EnableButtons(false);
-        
+    }
+
+    private void OnEnable()
+    {
         AIHandler.SelectTech += BeginAI;
     }
 
@@ -61,23 +73,23 @@ public class ActionMenuTech : UIScreen
     {
         base.Open();
         
-        EnableButtons(true);
         CharacterController activeChar = TurnManager.GetActivePlayer();
         activeChar.tileSelector.ResetSelectableTiles();
         _techHandler = activeChar.TechHandler;
         
         SetupTechs(_techHandler);
         SetupTechNames();
-
+        
         _techButtons[0].Select();
         UpdateTechInfo();
     }
 
-    public override void Close()
+    
+    private void Update()
     {
-        EnableButtons(false);
-        base.Close();
+        if (Input.GetKeyDown(KeyCode.K)) _techButtons[0].Select();
     }
+
     private void SetupTechs(TechHandler th)
     {
         ButtonToTech.Clear();
@@ -113,17 +125,9 @@ public class ActionMenuTech : UIScreen
             else _techLabels[i].text = _techs[i].techName;
         }
     }
-    
-    void EnableButtons(bool b)
-    {
-        foreach (Button button in _techButtons)
-        {
-            button.interactable = b;
-        }
-    }
-    
 
-    
+
+
     // Buttons
     public void OnSubmit()
     {
@@ -181,10 +185,10 @@ public class ActionMenuTech : UIScreen
     private IEnumerator AIActions()
     {
         Button currentButton = GetTechButton();
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.25f);
         currentButton.Select();
         UpdateTechInfo();
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.25f);
         OnSubmit();
         OnTechClicked?.Invoke();
     }

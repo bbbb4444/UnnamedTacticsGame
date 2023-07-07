@@ -16,8 +16,12 @@ public class SpawnpointManager : MonoBehaviour
         SpawnFields = FindObjectsOfType<SpawnField>();
         PlayerSpawnFields = Array.FindAll(SpawnFields, obj => obj.playerField);
         EnemySpawnFields = Array.FindAll(SpawnFields, obj => !obj.playerField);
-        
-        
+
+        Spawn();
+    }
+
+    private void Spawn()
+    {
         PlayerTeam = GameManager.Instance.playerTeam;
         EnemyTeam = GameManager.Instance.enemyTeam;
         
@@ -25,11 +29,13 @@ public class SpawnpointManager : MonoBehaviour
         SpawnPlayers();
         SpawnEnemies();
     }
+    
     private void SpawnPlayers()
     {
         int spawnFieldIndex = Random.Range(0, PlayerSpawnFields.Length);
         PlayerSpawnFields[spawnFieldIndex].SpawnCharacters(PlayerTeam);
     }
+    
     private void SpawnEnemies()
     {
         int spawnFieldIndex = Random.Range(0, EnemySpawnFields.Length);

@@ -8,5 +8,10 @@ public class SceneSwitcher : MonoBehaviour
     {
         UIManager.Instance.CloseAllScreens();
         SceneManager.LoadScene(sceneName);
+
+        if (sceneName.Equals("SampleScene"))
+        {
+            UIManager.Instance.OpenScreen(ScreenType.Ready);
+        }
     }
 }

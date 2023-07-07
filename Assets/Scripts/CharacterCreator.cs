@@ -52,6 +52,13 @@ public class CharacterCreator : MonoBehaviour
         return character;
     }
 
+    public GameObject CreateCharacter(GameObject character, CharType type)
+    {
+        GameObject newCharacter = Instantiate(character);
+        newCharacter.GetComponent<CharacterController>().CharType = type;
+        return newCharacter;
+    }
+
     private void ClearCreatedCharacters()
     {
         while (transform.childCount > 0) {

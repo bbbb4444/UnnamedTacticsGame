@@ -27,7 +27,7 @@ public class LandmarkInput : MonoBehaviour
     
     public void OnSubmit()
     {
-        if (!CanUse/* || !LandmarkManager.Instance.current.IsActive || LandmarkManager.Instance.current.IsCompleted*/) return;
+        if (!CanUse || !LandmarkManager.Instance.current.IsActive || LandmarkManager.Instance.current.IsCompleted) return;
         
         LandmarkManager.Instance.current.EnterLandmark();
     }
@@ -54,21 +54,21 @@ public class LandmarkInput : MonoBehaviour
         }
         else if (y == 1)
         {
-            if (current.NeighborAbove == null)
+            if (current.neighborAbove == null)
             {
                 if (current.nextLandmarks.Count == 0) return;
                 selected = current.nextLandmarks[0];
             }
-            else selected = current.NeighborAbove;
+            else selected = current.neighborAbove;
         }
         else if (y == -1)
         {
-            if (current.NeighborBelow == null)
+            if (current.neighborBelow == null)
             {
                 if (current.nextLandmarks.Count  < 2) return;
                 selected = current.nextLandmarks[1];
             }
-            else selected = current.NeighborBelow;
+            else selected = current.neighborBelow;
         }
 
         LandmarkManager.Instance.SelectLandmark(selected);

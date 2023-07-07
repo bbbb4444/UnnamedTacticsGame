@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 
 public enum ScreenType
 {
@@ -20,7 +22,20 @@ public enum ScreenType
 }
 public class UIManager : MonoBehaviour
 {
-   
+    public InputSystemUIInputModule inputModule;
+    public InputActionAsset player;
+    public InputActionAsset npc;
+
+    public void DisablePlayerInput()
+    {
+        if (inputModule.actionsAsset != npc) inputModule.actionsAsset = npc;
+    }
+
+    public void EnablePlayerInput()
+    {
+        if (inputModule.actionsAsset != player) inputModule.actionsAsset = player;
+    }
+    
     private Dictionary<ScreenType, UIScreen> _screens;
     
     public static UIManager Instance;
@@ -35,7 +50,7 @@ public class UIManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         
-        
+        inputModule = EventSystem.current.GetComponent<InputSystemUIInputModule>();
         _screens = new Dictionary<ScreenType, UIScreen>();
         var allScreens = FindObjectsOfType<UIScreen>();
         foreach (UIScreen screen in allScreens)
@@ -57,9 +72,9 @@ public class UIManager : MonoBehaviour
                 screen.Value.Open();
             }
         }
-        // UIScreens enable and disable the Player Input component when they open and close.
-        // For some reason, this causes input to stop being registered by the EventSystem unless it is toggled off and on.
-        // This is why this code is needed.
+        // Disabling player input (for NPC turns) is achieved by changing the actionmap to an empty one.
+        // This introduces various bugs such as input being permanently disabled and not being able to select buttons.
+        // This band-aid fixes the bugs.
         EventSystem.current.currentInputModule.enabled = false;
         EventSystem.current.currentInputModule.enabled = true;
     }

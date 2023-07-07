@@ -1,12 +1,13 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 
 public class UIScreen : MonoBehaviour
 {
     public ScreenType ScreenType;
     private Canvas canvas;
-    private CanvasGroup canvasGroup;
-    private PlayerInput playerInput;
+    protected CanvasGroup canvasGroup;
     
     [SerializeField] public ScreenType nextScreen;
     [SerializeField] public ScreenType lastScreen;
@@ -17,18 +18,13 @@ public class UIScreen : MonoBehaviour
     {
         canvas = GetComponent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
-        TryGetComponent(out playerInput);
     }
     
     
     public virtual void Open()
     {
-        if (!canvas.enabled)
-        {
-            canvas.enabled = true;
-            canvasGroup.interactable = true;
-            if (playerInput) playerInput.ActivateInput();
-        }
+        canvas.enabled = true;
+        canvasGroup.interactable = true;
     }
  
     public virtual void Close()
@@ -37,8 +33,6 @@ public class UIScreen : MonoBehaviour
         {
             canvas.enabled = false;
             canvasGroup.interactable = false;
-            if (playerInput) playerInput.DeactivateInput();
-            
         }
     }
  

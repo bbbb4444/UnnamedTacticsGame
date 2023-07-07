@@ -5,7 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
-
+using LandmarkType = LandmarkManager.LandmarkType;
 
 /// <summary>
 /// Controls and does some initialization of the landmark randomization system.
@@ -13,31 +13,27 @@ using Random = UnityEngine.Random;
 public class LandmarkInitializer : MonoBehaviour
 {
     public bool root;
-    private enum LandmarkType
-    {
-        Battle,
-        Event
-    }
-
+    
     private LandmarkType _landmarkType;
     public Landmark landmark;
     [SerializeField] public List<LandmarkInitializer> nextInitializers = new();
     [SerializeField] public List<LandmarkInitializer> prevInitializers = new();
     
-    private void Start()
+    public void Initialize()
     {
         GetComponent<Renderer>().enabled = false;
         _landmarkType = GetRandomLandmarkType();
         InitializeLandmark(_landmarkType);
     }
-
+    
     /// <summary>
     /// </summary>
     /// <returns>A random landmarkType num, weighted.</returns>
     private LandmarkType GetRandomLandmarkType()
     {
-        int num = Random.Range(0, 10);
-        return num > 6 ? LandmarkType.Event : LandmarkType.Battle;
+        LandmarkType type = LandmarkManager.Instance.landmarkSequence[0];
+        LandmarkManager.Instance.landmarkSequence.RemoveAt(0);
+        return type;
     }
 
     /// <summary>

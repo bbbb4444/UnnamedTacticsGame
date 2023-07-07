@@ -31,7 +31,7 @@ public class ActionUnitInfo : UIScreen
         if (Cursor)
         {
             Unit = Cursor.HoverCharacter;
-            UpdateUI();
+            if (Unit) UpdateUI();
         }
     }
 

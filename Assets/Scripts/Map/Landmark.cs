@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Base class for BattleLandmark and EventLandmark. Contains methods common to both.
@@ -14,8 +15,8 @@ public class Landmark : MonoBehaviour
 
     [SerializeField] public List<Landmark> nextLandmarks = new();
     [SerializeField] public List<Landmark> prevLandmarks = new();
-    public Landmark NeighborAbove;
-    public Landmark NeighborBelow;
+    public Landmark neighborAbove;
+    public Landmark neighborBelow;
     
     [SerializeField] public bool IsCurrent { get; set; }
     public bool IsActive { get; set; }
@@ -58,6 +59,9 @@ public class Landmark : MonoBehaviour
     {
         print(LandmarkManager.Instance.current);
         OnEnter?.Invoke();
+
+        if (neighborAbove) neighborAbove.Inactivate();
+        if (neighborBelow) neighborBelow.Inactivate();
     }
     
     /// <summary>
@@ -109,6 +113,12 @@ public class Landmark : MonoBehaviour
         IsActive = true;
     }
 
+    private void Inactivate()
+    {
+        SetColor(_inactiveColor);
+        IsActive = false;
+    }
+    
     /// <summary>
     /// Completes the landmark.
     /// </summary>
@@ -165,13 +175,13 @@ public class Landmark : MonoBehaviour
         Ray ray = new Ray(transform.position, Vector3.forward);
         if (Physics.Raycast(ray,out landmarkHit, 20, layerMask))
         {
-            NeighborAbove = landmarkHit.collider.GetComponent<Landmark>();
+            neighborAbove = landmarkHit.collider.GetComponent<Landmark>();
         }
         
         ray = new Ray(transform.position, Vector3.back);
         if (Physics.Raycast(ray,out landmarkHit, 20, layerMask))
         {
-            NeighborBelow = landmarkHit.collider.GetComponent<Landmark>();
+            neighborBelow = landmarkHit.collider.GetComponent<Landmark>();
         }
     }
 }

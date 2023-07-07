@@ -6,6 +6,8 @@ using UnityEngine.Serialization;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private GameObject playerTeamHolder;
+    
     [SerializeField] private List<GameObject> playerTeamPrefabs;
     
     public List<GameObject> playerTeam;
@@ -57,7 +59,7 @@ public class GameManager : MonoBehaviour
     {
         if (!playerTeam.Contains(player))
         {
-            GameObject p = Instantiate(player, transform);
+            GameObject p = Instantiate(player, playerTeamHolder.transform);
             playerTeam.Add(p);
             playerControllers.Add(p.GetComponent<CharacterController>());
         }
@@ -68,6 +70,13 @@ public class GameManager : MonoBehaviour
     }
     public void WinBattle()
     {
+        LandmarkManager.Instance.gameObject.SetActive(true);
+
+        foreach (GameObject player in playerTeam)
+        {
+            player.transform.position = playerTeamHolder.transform.position;
+        }
+        
         SceneSwitcher.SwitchToScene("Map1");
         LandmarkManager.Instance.WinLandmark();
     }
@@ -77,4 +86,6 @@ public class GameManager : MonoBehaviour
         
     }
 
+    
+    
 }

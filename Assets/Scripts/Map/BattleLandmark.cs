@@ -35,17 +35,12 @@ public class BattleLandmark : Landmark
     {
         GameManager.Instance.enemyTeam = enemyTeam;
         SceneSwitcher.SwitchToScene("SampleScene");
-        
-        StartCoroutine(OpenScreenAfterDelay());
-        
+
         base.EnterLandmark();
+        
+        LandmarkManager.Instance.gameObject.SetActive(false);
     }
     
-    private IEnumerator OpenScreenAfterDelay()
-    {
-        yield return new WaitForSeconds(0.1f);
-        UIManager.Instance.OpenScreen(ScreenType.Ready);
-    }
 
     protected override void CreateAppearance()
     {

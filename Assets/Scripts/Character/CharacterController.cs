@@ -115,7 +115,7 @@ public class CharacterController : MonoBehaviour
     
     private void Update()
     {
-        if (Ready) BeginPhase();
+        if (Ready && !TurnManager.IsGameOver()) BeginPhase();
     }
 
     private void AddToTurnManager()
