@@ -8,8 +8,6 @@ using UnityEngine.UI;
 
 public class ActionMenu : UIScreen
 {
-    private PlayerInputController _playerInputController;
-    
     public Button moveButton;
     public Button techButton;
     public Button waitButton;
@@ -45,13 +43,7 @@ public class ActionMenu : UIScreen
         if (moveButton.interactable) moveButton.Select();
         else techButton.Select();
     }
-
-    protected override void Awake()
-    {
-        base.Awake();
-
-        _playerInputController = GetComponent<PlayerInputController>();
-    }
+    
     
     private void OnEnable()
     {

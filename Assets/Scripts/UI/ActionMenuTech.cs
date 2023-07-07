@@ -11,8 +11,6 @@ using UnityEngine.UI;
 
 public class ActionMenuTech : UIScreen
 {
-    private PlayerInputController _playerInputController;
-    
     public static UnityAction OnTechClicked;
     
     private bool _firstNavigation = true;
@@ -36,12 +34,6 @@ public class ActionMenuTech : UIScreen
     public TextMeshProUGUI ppLabel;
     public Image typeIcon;
     
-    protected override void Awake()
-    {
-        base.Awake();
-
-        _playerInputController = GetComponent<PlayerInputController>();
-    }
     
     private void Start()
     {
