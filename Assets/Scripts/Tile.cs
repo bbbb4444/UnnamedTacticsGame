@@ -124,13 +124,18 @@ public class Tile : MonoBehaviour
         for (int i = 0; i < numColliders; i++)
         {
             Vector3 origin = colliders[i].transform.position + new Vector3(0, 0.1f, 0);
-            int layerMask = 1 << LayerMask.NameToLayer("Tile");
+            
             
             // If this isn't a tile, skip this.
             if (!colliders[i].CompareTag("Tile")) continue;
             
             // If another tile is blocking this tile from above, skip this tile.
             // TODO: Move this to tile processing in TileSelector if raw neighbors are ever needed.
+            int layerMask = 1 << LayerMask.NameToLayer("Tile");
+            if (Physics.Raycast(origin, Vector3.up, out RaycastHit _, 1, layerMask)) continue;
+            
+            // If a prop is blocking this tile from above, skip this tile.
+            layerMask = 1 << LayerMask.NameToLayer("Prop");
             if (Physics.Raycast(origin, Vector3.up, out RaycastHit _, 1, layerMask)) continue;
             
             neighbors.Add(colliders[i].GetComponent<Tile>());

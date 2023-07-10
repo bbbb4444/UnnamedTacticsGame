@@ -12,7 +12,7 @@ public class BattleLandmark : Landmark
         base.Awake();
 
         pool = (EnemyPool.Pool) Random.Range(0, 2);
-        EnemyCount = Random.Range(2, 4);
+        EnemyCount = Mathf.RoundToInt(level/1.3f);
         enemyTeam = EnemyPool.Instance.GetRandomEnemies(pool, EnemyCount);
     }
 
@@ -21,7 +21,7 @@ public class BattleLandmark : Landmark
         base.Complete();
         StartCoroutine(ReselectAfterDelay());
         
-        UIManager.Instance.OpenScreen(ScreenType.ChooseYourRewardCharacter);
+        UIManager.Instance.OpenScreen(ScreenType.RewardBattleOptions);
     }
 
     private IEnumerator ReselectAfterDelay()

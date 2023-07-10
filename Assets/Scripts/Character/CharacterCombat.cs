@@ -26,7 +26,6 @@ public class CharacterCombat : MonoBehaviour
     {
         int range = tech.range;
         //RangeStyle rangeStyle = tech.rangeStyle;
-        int height = 100;
         
         _tileSelector.FindSelectableTechTiles(range, null);
         if (tech.LOS)
@@ -49,13 +48,12 @@ public class CharacterCombat : MonoBehaviour
         }
     }
     // Battle
-    public void TechAttack(Technique tech, CharacterController attacker, List<CharacterController> targets)
+    
+    public void TakeHeal(float dmg)
     {
-        //Animate()
-        foreach (CharacterController target in targets)
-        {
-            BattleManager.TechAttack(tech, attacker, target);
-        }
+        int animationLength = 1;
+        _stats.AddStat(Stat.Health, -dmg);
+        StartCoroutine(TakeDamageAnimate(dmg, animationLength));
     }
     
     public void TakeDamage(float dmg)
@@ -71,7 +69,7 @@ public class CharacterCombat : MonoBehaviour
         yield return new WaitForSeconds(animationLength);
         
         
-        if (_stats.GetStat(Stat.Health) <= 0) _character.Die();
+        if ((int) _stats.GetStat(Stat.Health) <= 0) _character.Die();
     }
     public void BasicAttack(CharacterController attacker, CharacterController defender)
     {

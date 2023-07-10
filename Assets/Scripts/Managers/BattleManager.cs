@@ -14,23 +14,49 @@ public class BattleManager : MonoBehaviour
         SuperWeakly = -2,
         Immune = -3
     }
-    
-    public static void TechAttack(Technique tech, CharacterController attacker, CharacterController defender)
+
+    public static void PerformTech(Technique tech, CharacterController attacker, List<CharacterController> targets)
     {
-        float accRoll = Random.value*100f;
-        if (accRoll > tech.acc)
+        foreach (CharacterController target in targets)
         {
-            defender.combat.TakeDamage(0);
-            return;
+            if (tech.target == Technique.Target.Ally)
+            {
+                if (!AccuracyCheck(tech))
+                {
+                    target.combat.TakeHeal(0);
+                    return;
+                }
+                
+                float heal = CalculateHeal(tech, attacker, target);
+                target.combat.TakeHeal(heal);
+            }
+            
+            else if (tech.target == Technique.Target.Enemy)
+            {
+                if (!AccuracyCheck(tech))
+                {
+                    target.combat.TakeDamage(0);
+                    return;
+                }
+                
+                float damage = CalculateDamage(tech, attacker, target);
+                target.combat.TakeDamage(damage);
+            }
         }
-
-        float damage = CalculateDamage(tech, attacker, defender);
-
-        
-        
-        defender.combat.TakeDamage(damage);
     }
 
+    private static bool AccuracyCheck(Technique tech)
+    {
+        float accRoll = Random.value * 100f;
+        return accRoll <= tech.acc;
+    }
+
+    public static float CalculateHeal(Technique tech, CharacterController attacker, CharacterController defender)
+    {
+        float techHeal = tech.heal;
+        return techHeal;
+    }
+    
     public static float CalculateDamage(Technique tech, CharacterController attacker, CharacterController defender)
     {
         float techPower = tech.power/100f;

@@ -47,7 +47,17 @@ public class CharacterGUI : MonoBehaviour
         }
 
         // Ensure the slider value is set to the target value at the end
-        _healthSlider.value = targetValue;
+        SetHP(targetValue);
         TurnManager.GetActivePlayer().EndOtherActionPhase();
+    }
+
+    private void SetHP(float value)
+    {
+        _healthSlider.value = value;
+    }
+
+    public void ResetHP()
+    {
+        SetHP(_healthSlider.maxValue);
     }
 }

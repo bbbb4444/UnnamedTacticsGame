@@ -112,10 +112,9 @@ public class CursorMovement : MonoBehaviour
     {
         TechConfirm = false;
         
-        Tile currentTile = GetTile();
         List<CharacterController> targets = TurnManager.GetActivePlayer().tileSelector.GetTargetedCharacters();
         Disable();
-        TurnManager.GetActivePlayer().TechAttack(targets);
+        TurnManager.GetActivePlayer().TechHandler.UseSelectedTech(targets);
     }
 
     private bool CanMove()
@@ -150,7 +149,7 @@ public class CursorMovement : MonoBehaviour
 
     private void OpenUnitFrame()
     {
-        UIManager.Instance.CloseScreen(ScreenType.ActionUnitInfo);
+        if (UIManager.Instance.IsScreenOpen(ScreenType.ActionUnitInfo)) UIManager.Instance.CloseScreen(ScreenType.ActionUnitInfo);
         if (GetTile().HasCharacter())
         {
             HoverCharacter = GetTile().GetCharacter();
@@ -158,7 +157,7 @@ public class CursorMovement : MonoBehaviour
         }
     }
     
-    float CalcHigherY(Vector3 direction)
+    private float CalcHigherY(Vector3 direction)
     {
         // Calc positive y (to raise the cursor)
         float y = 0;
@@ -172,22 +171,22 @@ public class CursorMovement : MonoBehaviour
                 Transform itemTransform = item.transform;
                 if (itemTransform.CompareTag("Tile"))
                 {
-                    y++;
+                    y += item.collider.bounds.size.y;
                 }
             }
         }
         return y;
     }
-    int CalcLowerY()
+    private float CalcLowerY()
     {
         // Calc negative y (to lower the cursor)
-        int y = 0;
+        float y = 0;
         Vector3 origin = _transform.position + new Vector3(0, 0.6f, 0);
         Ray ray = new(origin, Vector3.down);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit))
         {
-            y = (int) -hit.distance;
+            y = -hit.distance + 0.1f;
         }
         return y;
     }

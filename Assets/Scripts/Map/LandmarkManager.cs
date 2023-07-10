@@ -120,6 +120,7 @@ public class LandmarkManager : MonoBehaviour
         }
     }
 
+    
     private Landmark GetRoot(LandmarkInitializer[] initializers)
     {
         foreach (LandmarkInitializer initializer in initializers)

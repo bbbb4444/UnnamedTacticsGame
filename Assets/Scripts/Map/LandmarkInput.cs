@@ -10,8 +10,8 @@ public class LandmarkInput : MonoBehaviour
         Landmark.OnComplete += Enable;
         Landmark.OnEnter += Disable;
         
-        EventCharacter.OnOpen += Disable;
-        EventCharacter.OnClose += Enable;
+        Event.OnOpen += Disable;
+        Event.OnClose += Enable;
     }
 
     private void OnDisable()
@@ -19,8 +19,8 @@ public class LandmarkInput : MonoBehaviour
         Landmark.OnComplete -= Enable;
         Landmark.OnEnter -= Disable;
         
-        EventCharacter.OnOpen -= Disable;
-        EventCharacter.OnClose -= Enable;
+        Event.OnOpen -= Disable;
+        Event.OnClose -= Enable;
     }
 
     private bool CanUse { get; set; }

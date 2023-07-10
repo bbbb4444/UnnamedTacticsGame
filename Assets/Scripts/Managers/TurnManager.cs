@@ -96,7 +96,7 @@ public class TurnManager : MonoBehaviour
         
         foreach (CharacterController cc in tempTurnQueue)
         {
-            cc.Reset();
+            cc.ResetTurn();
             _turnQueue.Enqueue(cc);
         }
     }

@@ -64,17 +64,20 @@ public class GameManager : MonoBehaviour
             playerControllers.Add(p.GetComponent<CharacterController>());
         }
     }
+    
     public void RemovePlayer(CharacterController player)
     {
         if (playerControllers.Contains(player)) playerControllers.Remove(player);
     }
+    
     public void WinBattle()
     {
         LandmarkManager.Instance.gameObject.SetActive(true);
 
-        foreach (GameObject player in playerTeam)
+        foreach (CharacterController player in playerControllers)
         {
             player.transform.position = playerTeamHolder.transform.position;
+            player.ResetBattle();
         }
         
         SceneSwitcher.SwitchToScene("Map1");

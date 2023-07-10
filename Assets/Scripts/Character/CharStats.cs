@@ -56,6 +56,22 @@ public class CharStats : ScriptableObject
         return 0;
     }
 
+    public void SetStat(Stat stat, float value)
+    {
+        foreach (StatInfo s in statInfo)
+        {
+            if (s.statType == stat)
+            {
+                s.statValue = value;
+                return;
+            }
+        }
+
+        Action<object> logError = Debug.LogError;
+        logError("No stat value found for " + stat + " in " + this.name);
+    }
+
+    
     public void AddStat(Stat stat, float value)
     {
         foreach (StatInfo s in statInfo)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class TileSelector : MonoBehaviour
@@ -89,6 +90,35 @@ public class TileSelector : MonoBehaviour
                 process.Enqueue(tile);
             }
         }
+    }
+
+    public Tile GetFarthestInRangeTile(CharacterController target, Technique tech)
+    {
+        List<Tile> sTiles = SelectableTiles.ToList();
+        ResetSelectableTiles();
+
+        List<Tile> inRangeTiles = new();
+        foreach (Tile tile in sTiles)
+        {
+            FindSelectableTechTiles(tech.range, tile);
+            if (GetTargetedCharacters().Contains(target))
+            {
+                inRangeTiles.Add(tile);
+            }
+            ResetSelectableTiles();
+        }
+
+        Tile farthestTile = sTiles[0];
+        foreach (Tile tile in inRangeTiles)
+        {
+            FindSelectableTechTiles(tech.range, tile);
+            if ((tile.transform.position - target.transform.position).sqrMagnitude >= (farthestTile.transform.position - target.transform.position).sqrMagnitude)
+            {
+                farthestTile = tile;
+            }
+        }
+        
+        return farthestTile;
     }
     
     public virtual void FindSelectableMoveTiles(float jumpHeight, float maxMoveDistance)

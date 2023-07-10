@@ -23,12 +23,13 @@ public class NPCMovement : CharacterMovement
         actualTargetTile.target = true; 
         controller.MoveToTile(actualTargetTile);
     }
-    
+
     protected override void OnStopMoving()
     {
         base.OnStopMoving();
         TileCursor.Follow(null);
     }
+    
     public void CalculatePath()
     {
         Tile targetTile = TileSelector.GetTargetTile(target);

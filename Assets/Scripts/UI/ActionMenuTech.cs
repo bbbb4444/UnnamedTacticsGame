@@ -7,13 +7,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class ActionMenuTech : UIScreen
 {
     public static UnityAction OnTechClicked;
     
-    private bool _firstNavigation = true;
     private List<Technique> _techs = new();
     private Technique _currentTech;
     [SerializeField] private Technique none;
@@ -71,15 +71,18 @@ public class ActionMenuTech : UIScreen
         
         SetupTechs(_techHandler);
         SetupTechNames();
+
+        DisableCooldownTechs();
         
         _techButtons[0].Select();
         UpdateTechInfo();
+        
     }
-
+    
     
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.K)) _techButtons[0].Select();
+        if (Input.GetKeyDown(KeyCode.K)) OnSubmit();
     }
 
     private void SetupTechs(TechHandler th)
@@ -118,7 +121,13 @@ public class ActionMenuTech : UIScreen
         }
     }
 
-
+    private void DisableCooldownTechs()
+    {
+        foreach (Button button in ButtonToTech.Keys)
+        {
+            button.interactable = _techHandler.CanUse(ButtonToTech[button]);
+        }
+    }
 
     // Buttons
     public void OnSubmit()
@@ -131,28 +140,20 @@ public class ActionMenuTech : UIScreen
         
         UIManager.Instance.CloseScreen(ScreenType.ActionMenuTech);
     }
-    
-    
+
     // Navigating
     public void OnNavigate()
     {
         if (!IsOpen) return;
-        
-        if (_firstNavigation)
-        {
-            _firstNavigation = false;
-            return;
-        }
         UpdateTechInfo();
-        _firstNavigation = true;
-    }
+    }    
 
     public void OnCancel()
     {
          UIManager.Instance.OpenScreen(lastScreen);   
     }
 
-    private void UpdateTechInfo()
+    public void UpdateTechInfo()
     {
         Button currentButton = EventSystem.current.currentSelectedGameObject.GetComponent<Button>();
 

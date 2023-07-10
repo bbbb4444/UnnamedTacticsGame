@@ -12,6 +12,7 @@ using LandmarkType = LandmarkManager.LandmarkType;
 /// </summary>
 public class LandmarkInitializer : MonoBehaviour
 {
+    public int level;
     public bool root;
     public bool boss;
     

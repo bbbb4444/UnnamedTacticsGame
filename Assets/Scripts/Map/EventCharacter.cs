@@ -7,9 +7,6 @@ using Random = UnityEngine.Random;
 
 public class EventCharacter : Event
 {
-    public static event UnityAction OnOpen;
-    public static event UnityAction OnClose;
-    
     protected int Options = 3;
     protected List<GameObject> Characters = new();
     protected List<CharacterController> CharacterControllers = new();
@@ -18,7 +15,6 @@ public class EventCharacter : Event
 
     public override void Open()
     {
-        OnOpen?.Invoke();
         base.Open();
         Characters = BuildCharacterList();
         foreach (GameObject character in Characters)
@@ -54,19 +50,16 @@ public class EventCharacter : Event
     {
         print("test");
         GameManager.Instance.AddPlayer(Characters[0]);
-        OnClose?.Invoke();
         Close();
     }
     public void OnOption2Clicked()
     {
         GameManager.Instance.AddPlayer(Characters[1]);
-        OnClose?.Invoke();
         Close();
     }
     public void OnOption3Clicked()
     {
         GameManager.Instance.AddPlayer(Characters[2]);
-        OnClose?.Invoke();
         Close();
     }
     

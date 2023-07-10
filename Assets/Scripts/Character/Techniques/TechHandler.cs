@@ -7,6 +7,7 @@ public class TechHandler : MonoBehaviour
     private CharStats _stats;
     [SerializeField]
     public List<Technique> Techinques = new();
+
     private void Start()
     {
         _controller = GetComponent<CharacterController>();
@@ -40,6 +41,39 @@ public class TechHandler : MonoBehaviour
     {
         _controller.tileSelector.ResetSelectableTiles();
         _controller.tileSelector.FindSelectableTechTiles(SelectedTech.AOE, center);
+    }
+
+    public bool CanUse(Technique tech)
+    {
+        return tech.cooldownCur <= 0;
+    }
+    
+    public void ReduceCooldowns(int value = 1)
+    {
+        foreach (Technique tech in Techinques)
+        {
+            tech.cooldownCur -= value;
+            if (tech.cooldownCur < 0) tech.cooldownCur = 0;
+        }
+    }
+    
+    public void UseSelectedTech(List<CharacterController> targets)
+    {
+        SelectedTech.cooldownCur = SelectedTech.cooldownMax;
+        
+        if (SelectedTech.target == Technique.Target.Ally)
+        {
+            List<CharacterController> allyTargets =
+                new List<CharacterController>(targets).FindAll(obj => obj.CompareTag(tag));
+            BattleManager.PerformTech(SelectedTech, _controller, allyTargets);
+        }
+        
+        else if (SelectedTech.target == Technique.Target.Enemy)
+        {
+            List<CharacterController> enemyTargets =
+                new List<CharacterController>(targets).FindAll(obj => !obj.CompareTag(tag));
+            BattleManager.PerformTech(SelectedTech, _controller, enemyTargets);
+        }
     }
 }
 

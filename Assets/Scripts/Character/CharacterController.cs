@@ -109,6 +109,7 @@ public class CharacterController : MonoBehaviour
 
     public void BeginTurn()
     {
+        TechHandler.ReduceCooldowns();
         StartingPosition = tform.position;
         Ready = true;
     }
@@ -145,7 +146,14 @@ public class CharacterController : MonoBehaviour
         
     }
 
-   public void Reset()
+   public void ResetBattle()
+   {
+       print(Stats.GetStat(Stat.Health));
+       Stats.SetStat(Stat.Health, Stats.GetBaseStat(Stat.Health));
+       gui.ResetHP();
+   }
+   
+   public void ResetTurn()
    {
        Actions = 2;
        CanMove = true;
@@ -201,13 +209,6 @@ public class CharacterController : MonoBehaviour
     {
         OnTechTarget?.Invoke();
         combat.TechTarget(tech);
-    }
-
-    public void TechAttack(List<CharacterController> targets)
-    {
-        List<CharacterController> enemyTargets =
-            new List<CharacterController>(targets).FindAll(obj => !obj.CompareTag(tag));
-        combat.TechAttack(TechHandler.SelectedTech, this, enemyTargets);
     }
 
     public void Die()

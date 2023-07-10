@@ -18,7 +18,9 @@ public enum ScreenType
     LightEvent2,
     ChooseYourFirstCharacter,
     ActionUnitInfo,
-    ChooseYourRewardCharacter
+    ChooseYourRewardCharacter,
+    RewardBattleOptions,
+    ChooseYourRewardTechnique
 }
 public class UIManager : MonoBehaviour
 {
@@ -58,23 +60,36 @@ public class UIManager : MonoBehaviour
             _screens.Add(screen.ScreenType, screen);
         }
     }
- 
+
+    private void Start()
+    {
+        CloseAllScreens();
+        OpenScreen(ScreenType.MainMenu);
+    }
+    
     public void OpenScreen(ScreenType targetScreen)
     {
+        EnablePlayerInput(); // Ensure player input enabled
+        
+        UIScreen screenToOpen = null;
+        
         foreach (var screen in _screens)
         {
             if (screen.Value.ScreenType != targetScreen)
             {
-                screen.Value.Close();
+                if (screen.Value.IsOpen) screen.Value.Close();
             }
             else
             {
-                screen.Value.Open();
+                screenToOpen = screen.Value;
             }
         }
+        if (screenToOpen) screenToOpen.Open(); //Ensure all screens are closed before opening another
+        
         // Disabling player input (for NPC turns) is achieved by changing the actionmap to an empty one.
         // This introduces various bugs such as input being permanently disabled and not being able to select buttons.
-        // This band-aid fixes the bugs.
+        // This band-aid fix resolves the bugs.
+        if (!EventSystem.current.currentInputModule) return;
         EventSystem.current.currentInputModule.enabled = false;
         EventSystem.current.currentInputModule.enabled = true;
     }
@@ -102,16 +117,6 @@ public class UIManager : MonoBehaviour
     
     public bool IsScreenOpen(ScreenType targetScreen)
     {
-        bool isOpened = false;
-        foreach (var screen in _screens)
-        {
-            if (screen.Value.ScreenType == targetScreen)
-            {
-                isOpened = screen.Value.IsOpen;
-            }
-        }
-
-        return isOpened;
+        return _screens[targetScreen].IsOpen;
     }
-    
 }

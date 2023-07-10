@@ -18,13 +18,15 @@ public class Landmark : MonoBehaviour
     public Landmark neighborAbove;
     public Landmark neighborBelow;
     
-    [SerializeField] public bool IsCurrent { get; set; }
+    public bool IsCurrent { get; set; }
     public bool IsActive { get; set; }
     public bool IsCompleted { get; set; }
     
     private Renderer _renderer;
-    protected GameObject Appearance;    
+    protected GameObject Appearance;
 
+    public int level;
+    
     private Color _color = Color.gray;
     private Color _inactiveColor = Color.gray;
     private Color _highlight = new(40/255f, 40/255f, 40/255f);
@@ -45,6 +47,7 @@ public class Landmark : MonoBehaviour
     
     protected virtual void Awake()
     {
+        level = GetComponent<LandmarkInitializer>().level;
         LinePrefab = Instantiate(Resources.Load<GameObject>("MapLine"));
         CreateAppearance();
         _renderer = Appearance.GetComponent<Renderer>();
