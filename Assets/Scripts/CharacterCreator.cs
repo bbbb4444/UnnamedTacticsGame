@@ -34,24 +34,56 @@ public class CharacterCreator : MonoBehaviour
         Player,
         Enemy
     }
-    
-    public GameObject CreateCharacter(CharStats stats, UnitTag unitTag)
+
+    public GameObject CopyCharacter(GameObject charObject, UnitTag unitTag)
     {
-        GameObject character = Resources.Load<GameObject>("CharInstantiate");
+        GameObject character = Instantiate(Resources.Load<GameObject>("CharInstantiate"), Instance.transform);
+        CharacterController controller = charObject.GetComponent<CharacterController>();
+        
         if (unitTag == UnitTag.Player)
         {
             character.tag = "Player";
+            character.AddComponent<CharacterController>().Stats = controller.Stats;
+            character.GetComponent<CharacterController>().Initialize();
+            character.GetComponent<TechHandler>().Techinques.Clear();
+            character.GetComponent<TechHandler>().Techinques = charObject.GetComponent<TechHandler>().Techinques;
+        }
+        
+        if (unitTag == UnitTag.Enemy)
+        {
+            character.tag = "NPC";
+            character.AddComponent<CharacterController>().Stats = controller.Stats;
+            character.GetComponent<CharacterController>().Initialize();
+            character.GetComponent<TechHandler>().Techinques.Clear();
+            character.GetComponent<TechHandler>().Techinques = charObject.GetComponent<TechHandler>().Techinques;
+        }
+        
+        return character;
+    }
+    
+    public GameObject CreateCharacter(CharStats stats, UnitTag unitTag)
+    {
+        GameObject character = Instantiate(Resources.Load<GameObject>("CharInstantiate"), Instance.transform);
+        if (unitTag == UnitTag.Player)
+        {
+            character.tag = "Player";
+            print(character);
             character.AddComponent<CharacterController>().Stats = stats;
+            character.GetComponent<CharacterController>().Initialize();
         }
 
         if (unitTag == UnitTag.Enemy)
         {
             character.tag = "NPC";
             character.AddComponent<NPCController>().Stats = stats;
+            character.GetComponent<CharacterController>().Initialize();
         }
         return character;
     }
 
+    
+    
+    
     public GameObject CreateCharacter(GameObject character, CharType type)
     {
         GameObject newCharacter = Instantiate(character);

@@ -201,13 +201,6 @@ public class AIHandler : MonoBehaviour
         List<Technique> techsOrdered = CreateTechniquePriority(targetType);
         return techsOrdered[0];
     }
-    
-    void Attack()
-    {
-        print("ATTACK");
-        _controller.BasicAttack(_controller, _controller.Target.GetComponent<CharacterController>());
-        print("Waiting to be finished attacking...");
-    }
 
     void Move()
     {

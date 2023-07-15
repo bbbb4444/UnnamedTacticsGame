@@ -9,17 +9,17 @@ public class CharacterGUI : MonoBehaviour
     public CharStats charStats;
     private Slider _healthSlider;
     private CharacterController _controller;
-    void Start()
+    
+    public void Initialize()
     {
         _controller = GetComponentInParent<CharacterController>();
         _healthSlider = GetComponentInChildren<Slider>();
         
-        
         _healthSlider.maxValue = charStats.GetStat(Stat.Health);
         _healthSlider.value = charStats.GetStat(Stat.Health);
     }
-
-    public void TakeDamageAnimate(float diff, int animationLength)
+    
+    public void AnimateHPBar(float diff, int animationLength)
     {
         float startValue = _healthSlider.value;
         float targetValue = startValue + diff;
@@ -48,7 +48,6 @@ public class CharacterGUI : MonoBehaviour
 
         // Ensure the slider value is set to the target value at the end
         SetHP(targetValue);
-        TurnManager.GetActivePlayer().EndOtherActionPhase();
     }
 
     private void SetHP(float value)

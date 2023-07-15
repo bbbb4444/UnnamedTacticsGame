@@ -33,7 +33,10 @@ public class BattleLandmark : Landmark
     
     public override void EnterLandmark()
     {
-        GameManager.Instance.enemyTeam = enemyTeam;
+        foreach (GameObject unit in enemyTeam)
+        {
+            GameManager.Instance.enemyTeam.Add(Instantiate(unit, GameManager.Instance.transform));
+        }
         SceneSwitcher.SwitchToScene("SampleScene");
 
         base.EnterLandmark();

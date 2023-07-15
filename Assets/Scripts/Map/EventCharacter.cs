@@ -16,7 +16,9 @@ public class EventCharacter : Event
     public override void Open()
     {
         base.Open();
+        CharacterControllers.Clear();
         Characters = BuildCharacterList();
+        
         foreach (GameObject character in Characters)
         {
             CharacterControllers.Add(character.GetComponent<CharacterController>());

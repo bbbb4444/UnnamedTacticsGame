@@ -23,24 +23,24 @@ public class BattleManager : MonoBehaviour
             {
                 if (!AccuracyCheck(tech))
                 {
-                    target.combat.TakeHeal(0);
+                    target.combat.TakeHeal(0, tech.animation);
                     return;
                 }
                 
                 float heal = CalculateHeal(tech, attacker, target);
-                target.combat.TakeHeal(heal);
+                target.combat.TakeHeal(heal, tech.animation);
             }
             
             else if (tech.target == Technique.Target.Enemy)
             {
                 if (!AccuracyCheck(tech))
                 {
-                    target.combat.TakeDamage(0);
+                    target.combat.TakeDamage(0, tech.animation);
                     return;
                 }
                 
                 float damage = CalculateDamage(tech, attacker, target);
-                target.combat.TakeDamage(damage);
+                target.combat.TakeDamage(damage, tech.animation);
             }
         }
     }

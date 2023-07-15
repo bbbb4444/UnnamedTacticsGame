@@ -24,7 +24,10 @@ public class SpawnField : MonoBehaviour
                 character.transform.position = Spawnpoints[i].SpawnPos;
                 print(character.transform.position);
             }
-            else if (character.CompareTag("NPC")) Instantiate(character, Spawnpoints[i].SpawnPos, Quaternion.identity);
+            else if (character.CompareTag("NPC"))
+            {
+                character.transform.position = Spawnpoints[i].SpawnPos;
+            }
         }
     }
     void Shuffle(Spawnpoint[] array)

@@ -3,11 +3,7 @@ using UnityEngine;
 public class NPCMovement : CharacterMovement
 {
     public GameObject target;
-    protected override void Start()
-    {
-        base.Start();
-    }
-    
+
     public override void FindSelectableTiles()
     {
         print("npc show select");

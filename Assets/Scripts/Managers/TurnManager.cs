@@ -24,7 +24,7 @@ public class TurnManager : MonoBehaviour
     public static void StartTurns()
     {
         OnBattleEnter?.Invoke();
-        
+ 
         InitializeCharacterDict();
         InitializeTurnQueue();
         StartNextTurn();
@@ -134,10 +134,7 @@ public class TurnManager : MonoBehaviour
     private static void Win()
     {
         GetActivePlayer().Ready = false;
-        foreach (CharacterController character in _enemyTeam)
-        {
-            Destroy(character.gameObject);
-        }
+
         ResetQueues();
         GameManager.Instance.WinBattle();
     }

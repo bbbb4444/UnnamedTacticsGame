@@ -29,21 +29,18 @@ public class CharacterMovement : MonoBehaviour
     private Vector3 _jumpTarget;
 
     public Tile actualTargetTile;
-
     
-    void OnEnable()
-    {
-    }
-    protected virtual void Start()
+    public void Initialize()
     {
         TileSelector = GetComponent<TileSelector>();
         controller = GetComponent<CharacterController>();
         TileCursor = GameObject.FindWithTag("Cursor").GetComponent<CursorMovement>();
         _halfHeight = GetComponent<Collider>().bounds.extents.y;
-
+        
         move = 4 + (int) controller.Stats.GetStat(Stat.Speed)/5;
         jumpHeight = 2;
     }
+    
     private void FixedUpdate()
     {
         if (Moving)

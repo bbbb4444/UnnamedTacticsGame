@@ -53,11 +53,16 @@ public class ActionUnitInfo : UIScreen
         CharacterController activeUnit = TurnManager.GetActivePlayer();
         Technique selectedTech = activeUnit.TechHandler.SelectedTech;
         
-        float damage = BattleManager.CalculateDamage(selectedTech, activeUnit, Unit);
+        float healthDiff = selectedTech.target == Technique.Target.Ally ? 
+            -BattleManager.CalculateHeal(selectedTech, activeUnit, Unit) : 
+            BattleManager.CalculateDamage(selectedTech, activeUnit, Unit);
         
         arrow.text = ">";
         arrow.color = BattleManager.GetEffectivenessColor(selectedTech, Unit.CharType);
-        hpAfter.text = "HP: " + (int) (Unit.Stats.GetStat(Stat.Health) - damage) + "/" + (int) Unit.Stats.GetBaseStat(Stat.Health);
+        int HP = Mathf.Clamp((int)(Unit.Stats.GetStat(Stat.Health) - healthDiff), 0,
+            (int)Unit.Stats.GetBaseStat(Stat.Health));
+        
+        hpAfter.text = "HP: " + HP + "/" + (int) Unit.Stats.GetBaseStat(Stat.Health);
     }
 
     private void ResetDamagePrediction()

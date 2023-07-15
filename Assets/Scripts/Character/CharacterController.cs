@@ -9,7 +9,7 @@ public class CharacterController : MonoBehaviour
 {
     [SerializeField] private CharStats stats;
     [SerializeField] private CharType type;
-    
+    public SoundPlayer soundPlayer;
     private TechHandler _techHandler;
     [HideInInspector] public TileSelector tileSelector;
     [HideInInspector] public CharColor charColor;
@@ -17,7 +17,7 @@ public class CharacterController : MonoBehaviour
     [HideInInspector] public Transform tform;
     [HideInInspector] public Collider ccollider;
     [HideInInspector] public float minY = 0;
-    private CharacterMovement _movement;
+    protected CharacterMovement Movement;
     [HideInInspector] public CharacterGUI gui;
     
     public static event UnityAction OnPhaseStart;
@@ -49,7 +49,7 @@ public class CharacterController : MonoBehaviour
         }
         set
         {
-            stats = value;
+            stats = Instantiate(value);
         }
     }
 
@@ -76,30 +76,45 @@ public class CharacterController : MonoBehaviour
     protected virtual void Awake()
     {
         Name = RandomName.GetRandomName();
-        stats = Instantiate(stats);
-        
         
         gui = GetComponentInChildren<CharacterGUI>();
-        gui.charStats = stats;
         
         ccollider = GetComponent<Collider>();
         tform = GetComponent<Transform>();
+        //soundPlayer = GetComponent<SoundPlayer>();
+        
         TryGetThenAddComponents();
+
+        if (stats) Initialize();
     }
 
+    public void Initialize()
+    {
+        Stats = Stats;
+        if (!CharType) CharType = stats.type;
+        combat.Initialize();
+        charColor.Initialize();
+        Movement.Initialize();
+        TechHandler.Initialize();
+        gui.charStats = stats;
+        gui.Initialize();
+        
+    }
+    
     private void TryGetThenAddComponents()
     {
-        combat = GetComponent<CharacterCombat>() ? GetComponent<CharacterCombat>() : this.AddComponent<CharacterCombat>();
-        tileSelector = GetComponent<TileSelector>() ? GetComponent<TileSelector>() : this.AddComponent<TileSelector>();
-        charColor = GetComponent<CharColor>() ? GetComponent<CharColor>() : this.AddComponent<CharColor>();
-        if (!CharType) CharType = stats.type;
-        TechHandler = GetComponent<TechHandler>() ? GetComponent<TechHandler>() : this.AddComponent<TechHandler>();
-        _movement = GetComponent<CharacterMovement>() ? GetComponent<CharacterMovement>() : this.AddComponent<CharacterMovement>();
+        combat = GetComponent<CharacterCombat>();
+        tileSelector = GetComponent<TileSelector>();
+        charColor = GetComponent<CharColor>();
+        TechHandler = GetComponent<TechHandler>();
+        //soundPlayer.techHandler = TechHandler;
+
+        if (CompareTag("Player"))
+            Movement = GetComponent<CharacterMovement>() ?? gameObject.AddComponent<CharacterMovement>();
     }
     
     protected virtual void Start()
     {
-        
         Actions = 2;
         CanMove = true;
         CanOtherAction = true;
@@ -196,15 +211,10 @@ public class CharacterController : MonoBehaviour
     }
     public CharacterMovement GetMovement()
     {
-        return _movement;
+        return Movement;
     }
 
     // Attack
-    public void BasicAttack(CharacterController attacker, CharacterController defender)
-    {
-        combat.BasicAttack(attacker, defender);
-    }
-
     public void TechTarget(Technique tech)
     {
         OnTechTarget?.Invoke();

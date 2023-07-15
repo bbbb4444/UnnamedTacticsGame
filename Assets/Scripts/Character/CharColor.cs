@@ -4,15 +4,14 @@ public class CharColor : MonoBehaviour
 {
     private CharType Type { get; set; }
     private Renderer Renderer { get; set; }
-
-    void Start()
+    
+    public void Initialize()
     {
-        Type = GetComponent<CharacterController>().CharType;
         Renderer = GetComponentsInChildren<Renderer>()[1];
-
+        Type = GetComponent<CharacterController>().CharType;
         UpdateColor(Type);
     }
-
+    
     public void UpdateColor(CharType type)
     {
         if (!Type) return;

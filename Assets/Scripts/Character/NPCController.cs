@@ -7,7 +7,8 @@ public class NPCController : CharacterController
 
     protected override void Awake()
     {
-        _aiHandler = GetComponent<AIHandler>() ? GetComponent<AIHandler>() : this.AddComponent<AIHandler>();
+        _aiHandler = GetComponent<AIHandler>() ?? gameObject.AddComponent<AIHandler>();
+        Movement = GetComponent<NPCMovement>() ?? gameObject.AddComponent<NPCMovement>();
         base.Awake();
     }
     

@@ -14,9 +14,9 @@ public class EventCharacterReward : EventCharacter
         foreach (GameObject character in GameManager.Instance.enemyTeam)
         {
             NPCController npc = character.GetComponent<NPCController>();
-            GameObject newChar = CharacterCreator.Instance.CreateCharacter(npc.Stats, CharacterCreator.UnitTag.Player);
+            GameObject newChar = CharacterCreator.Instance.CopyCharacter(npc.gameObject, CharacterCreator.UnitTag.Player);
             
-            Characters.Add(Instantiate(newChar));
+            Characters.Add(newChar);
         }
         
         base.Open();

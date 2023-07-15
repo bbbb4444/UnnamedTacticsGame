@@ -19,6 +19,7 @@ public class CharStats : ScriptableObject
     private TextAsset _typeEffectiveText;
     private TextAsset _typeNamesText;
 
+    public int startingMoves = 1;
     public List<Technique> movePool = new();
     public List<StatInfo> baseStatInfo = new List<StatInfo>();
     private List<StatInfo> statInfo = new List<StatInfo>();
@@ -78,7 +79,7 @@ public class CharStats : ScriptableObject
         {
             if (s.statType == stat)
             {
-                s.statValue += value;
+                s.statValue = Mathf.Clamp(s.statValue + value, 0, GetBaseStat(stat));
             } 
         }
     }

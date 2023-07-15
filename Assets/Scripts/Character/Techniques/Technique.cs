@@ -22,7 +22,7 @@ public class Technique : ScriptableObject
         HealOverTime
     }
 
-    
+    [SerializeField] public string animation;
     [SerializeField] public Target target;
     [SerializeField] public string techName;
     [SerializeField] public CharType type;

@@ -1,20 +1,35 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using Random = UnityEngine.Random;
 
 public class TechHandler : MonoBehaviour
 {
     private CharacterController _controller;
+    private Animator _animator;
     private CharStats _stats;
     [SerializeField]
     public List<Technique> Techinques = new();
-
-    private void Start()
+    
+    public void Initialize()
     {
+        _animator = GetComponentInChildren<Animator>();
         _controller = GetComponent<CharacterController>();
-        if (Techinques.Count == 0) AddTech(_controller.Stats.movePool[0]);
-        if (CompareTag("Player")) AddTech(Resources.Load<Technique>("OPGG"));
+        if (Techinques.Count == 0)
+        {
+            List<Technique> movePool = _controller.Stats.movePool;
+            for (int i = 0; i < _controller.Stats.startingMoves; i++)
+            {
+                int rand;
+                do rand = Random.Range(0, movePool.Count);
+                while (Techinques.Contains(movePool[rand]));
+                Techinques.Add(movePool[rand]);
+            }
+            if (CompareTag("Player")) AddTech(Resources.Load<Technique>("OPGG"));
+        }
     }
-
+    
     public Technique SelectedTech { get; set; }
     
     public void AddTech(Technique tech)
@@ -56,7 +71,17 @@ public class TechHandler : MonoBehaviour
             if (tech.cooldownCur < 0) tech.cooldownCur = 0;
         }
     }
-    
+
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            if (_controller == TurnManager.GetActivePlayer()) _animator.Play("Cast Technique");
+        }
+    }
+
+
     public void UseSelectedTech(List<CharacterController> targets)
     {
         SelectedTech.cooldownCur = SelectedTech.cooldownMax;
